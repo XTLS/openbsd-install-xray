@@ -314,7 +314,7 @@ installV2Ray(){
 installInitScript() {
     if [[ -n "$RCCTL_CMD" ]] && [[ ! -f '/etc/rc.d/v2ray' ]]; then
         mkdir "$VSRC_ROOT/rc.d"
-        curl -o "$VSRC_ROOT/rc.d/v2ray" https://raw.githubusercontent.com/v2fly/openbsd-install-v2ray/master/rc.d/v2ray
+        curl -o "$VSRC_ROOT/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray
         install -m 755 -g bin "$VSRC_ROOT/rc.d/v2ray" /etc/rc.d/v2ray
         rcctl enable v2ray
     fi
