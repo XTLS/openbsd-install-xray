@@ -244,9 +244,9 @@ startV2Ray() {
 installFile() {
     NAME="$1"
     if [[ "$NAME" == 'v2ray' ]] || [[ "$NAME" == 'v2ctl' ]]; then
-        ERROR="$(install -m 755 -g bin $VSRC_ROOT/$NAME /usr/local/bin/$NAME 2>&1)"
+        ERROR="$(install -m 755 -g bin $VSRC_ROOT/$NAME /usr/local/bin/$NAME)"
     elif [[ "$NAME" == 'geoip.dat' ]] || [[ "$NAME" == 'geosite.dat' ]]; then
-        ERROR="$(install -m 755 -g bin $VSRC_ROOT/$NAME /usr/local/lib/v2ray/$NAME 2>&1)"
+        ERROR="$(install -m 755 -g bin $VSRC_ROOT/$NAME /usr/local/lib/v2ray/$NAME)"
     fi
     if [[ "$?" -ne '0' ]]; then
         colorEcho "$YELLOW" "$ERROR"
