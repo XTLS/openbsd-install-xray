@@ -10,46 +10,17 @@
 # 3: Network error
 
 # CLI arguments
-CHECK=''
 DIST_SRC='github'
-ERROR_IF_UPTODATE=''
-EXTRACT_ONLY=''
-FORCE=''
-HELP=''
-LOCAL=''
-LOCAL_INSTALL=''
-PROXY=''
-REMOVE=''
-VERSION=''
 VSRC_ROOT='/tmp/v2ray'
 
-CUR_VER=''
-NEW_VER=''
-V2RAY_RUNNING='0'
-VDIS=''
-ZIPFILE='/tmp/v2ray/v2ray.zip'
-
-CMD_INSTALL=''
+VDIS="$(archAffix)"
+ZIPFILE="/tmp/v2ray/v2ray-openbsd-$VDIS.zip"
 
 RCCTL_CMD="$(command -v rcctl 2>/dev/null)"
-
-####### color code ########
-BLUE='36m' # Info message
-GREEN='32m' # Success message
-RED='31m' # Error message
 
 ###########################
 while [[ "$#" -gt 0 ]]; do
     case "$1" in
-        --errifuptodate)
-            ERROR_IF_UPTODATE='1'
-            ;;
-        --extract)
-            VSRC_ROOT="$2"
-            ;;
-        --extractonly)
-            EXTRACT_ONLY='1'
-            ;;
         --remove)
             REMOVE='1'
             ;;
@@ -97,12 +68,8 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 ###############################
-colorEcho() {
-    echo -e "\033[${1}${@:2}\033[0m"
-}
-
 archAffix() {
-    case "${1:-$(uname -m)}" in
+    case "$(uname -m)" in
         i686 | i386)
             echo '32'
             ;;
@@ -124,18 +91,18 @@ downloadV2Ray() {
     else
         DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VER/v2ray-openbsd-$VDIS.zip"
     fi
-    colorEcho "$BLUE" "Downloading V2Ray: $DOWNLOAD_LINK"
+    echo "info: Downloading V2Ray: $DOWNLOAD_LINK"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIPFILE" "$DOWNLOAD_LINK"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIPFILE.dgst" "$DOWNLOAD_LINK.dgst"
     if [[ "$?" -ne '0' ]]; then
-        colorEcho "$RED" 'Download failed! Please check your network or try again.'
+        echo 'error: Download failed! Please check your network or try again.'
         return 3
     fi
     for LISTSUM in 'md5' 'sha1' 'sha256' 'sha512'; do
         SUM="$($LISTSUM $ZIPFILE | sed 's/.* //')"
         CHECKSUM="$(grep ${LISTSUM^^} $ZIPFILE.dgst | sed 's/.* //')"
         if [[ "$SUM" != "$CHECKSUM" ]]; then
-            colorEcho "$RED" 'Check failed! Please check your network or try again.'
+            echo 'error: Check failed! Please check your network or try again.'
             return 3
         fi
     done
@@ -150,14 +117,14 @@ installSoftware() {
 
     getPMT
     if [[ "$?" -eq '1' ]]; then
-        colorEcho "$RED" "The system package manager tool isn't pkg_add, please install $COMPONENT manually."
+        echo "error: The system package manager tool isn't pkg_add, please install $COMPONENT manually."
         return 1
     fi
 
-    colorEcho "$BLUE" "Installing $COMPONENT"
+    echo "info: Installing $COMPONENT"
     ${CMD_INSTALL} "$COMPONENT--"
     if [[ "$?" -ne '0' ]]; then
-        colorEcho "$RED" "Failed to install $COMPONENT. Please install it manually."
+        echo "error: Failed to install $COMPONENT. Please install it manually."
         return 1
     fi
     return 0
@@ -177,14 +144,11 @@ extract(){
     mkdir -p /tmp/v2ray
     unzip -q "$1" -d "$VSRC_ROOT"
     if [[ "$?" -ne '0' ]]; then
-        colorEcho "$RED" 'Failed to extract V2Ray.'
+        echo 'error: V2Ray extraction failed.'
         return 2
     fi
     echo '---'
-    colorEcho "$BLUE" 'Extract the V2Ray package to /tmp/v2ray and prepare it for installation.'
-    if [[ -d "/tmp/v2ray/v2ray-$NEW_VER-openbsd-$VDIS" ]]; then
-        VSRC_ROOT="/tmp/v2ray/v2ray-$NEW_VER-openbsd-$VDIS"
-    fi
+    echo 'info: Extract the V2Ray package to /tmp/v2ray and prepare it for installation.'
     return 0
 }
 
@@ -215,7 +179,7 @@ getVersion() {
         TAG_URL='https://api.github.com/repos/v2ray/v2ray-core/releases/latest'
         NEW_VER="$(normalizeVersion $(curl $PROXY -s $TAG_URL --connect-timeout 10 | grep 'tag_name' | cut -d \" -f 4))"
         if [[ "$?" -ne '0' ]] || [[ "$NEW_VER" == '' ]]; then
-            colorEcho "$RED" 'Failed to fetch release information. Please check your network or try again.'
+            echo 'error: Failed to fetch release information. Please check your network or try again.'
             return 3
         elif [[ "$RETVAL" -ne '0' ]];then
             return 2
@@ -237,7 +201,7 @@ stopV2Ray() {
         echo 'error: Stopping the V2Ray service failed.'
         return 2
     fi
-    colorEcho "$BLUE" 'Stop the V2Ray service.'
+    echo 'info: Stop the V2Ray service.'
     return 0
 }
 
@@ -249,20 +213,16 @@ startV2Ray() {
         echo 'error: Failed to start V2Ray service.'
         return 2
     fi
-    colorEcho "$BLUE" 'Start the V2Ray service.'
+    echo 'info: Start the V2Ray service.'
     return 0
 }
 
 installFile() {
     NAME="$1"
     if [[ "$NAME" == 'v2ray' ]] || [[ "$NAME" == 'v2ctl' ]]; then
-        ERROR="$(install -m 755 -g bin $VSRC_ROOT/$NAME /usr/local/bin/$NAME)"
+        "$(install -m 755 -g bin $VSRC_ROOT/$NAME /usr/local/bin/$NAME)"
     elif [[ "$NAME" == 'geoip.dat' ]] || [[ "$NAME" == 'geosite.dat' ]]; then
-        ERROR="$(install -m 755 -g bin $VSRC_ROOT/$NAME /usr/local/lib/v2ray/$NAME)"
-    fi
-    if [[ "$?" -ne '0' ]]; then
-        echo "error: $ERROR."
-        return 1
+        "$(install -m 755 -g bin $VSRC_ROOT/$NAME /usr/local/lib/v2ray/$NAME)"
     fi
     return 0
 }
@@ -271,7 +231,7 @@ installV2Ray(){
     # Install V2Ray binary to /usr/local/bin and /usr/local/lib/v2ray
     installFile v2ray
     if [[ "$?" -ne '0' ]]; then
-        colorEcho "$RED" 'Failed to copy V2Ray binary and resources.'
+        echo 'error: Failed to copy V2Ray binary and resources.'
         return 1
     fi
     installFile v2ctl
@@ -284,7 +244,7 @@ installV2Ray(){
         install -d /etc/v2ray
         install -m 644 "$VSRC_ROOT/vpoint_vmess_freedom.json" /etc/v2ray/config.json
         if [[ "$?" -ne '0' ]]; then
-            echo 'error: Unable to create V2Ray profile, please create it manually.'
+            echo 'warn: Unable to create V2Ray profile, please create it manually.'
             return 1
         fi
         let PORT="$RANDOM+10000"
@@ -314,8 +274,8 @@ installV2Ray(){
     sed -i "s/10086/$PORT/g" /etc/v2ray/config.json
     sed -i "s/23ad6b10-8d1a-40f7-8ad0-e3e35cd38297/$UUID/g" /etc/v2ray/config.json
 
-    colorEcho "$BLUE" "PORT: $PORT"
-    colorEcho "$BLUE" "UUID: $UUID"
+    echo "PORT: $PORT"
+    echo "UUID: $UUID"
     fi
     if [[ ! -d '/var/log/v2ray' ]]; then
         install -do www /var/log/v2ray
@@ -333,8 +293,8 @@ installInitScript() {
 
 showHelp() {
     echo "usage: $0 [--remove] [--version] [-cfhlp]"
-    echo '      --remove    Remove V2Ray'
-    echo '      --version   Install the specified version, e.g., --version v3.15'
+    echo '  --remove        Remove V2Ray'
+    echo '  --version       Install the specified version, e.g., --version v3.15'
     echo '  -c, --check     Check for updates'
     echo '  -f, --force     Force installation'
     echo '  -h, --help      Show help'
@@ -350,17 +310,17 @@ remove() {
         NAME="$1"
         rm -rf /usr/local/bin/{v2ray,v2ctl} /usr/local/lib/v2ray /etc/rc.d/v2ray
         if [[ "$?" -ne '0' ]]; then
-            colorEcho "$RED" 'Failed to remove V2Ray.'
+            echo 'error: Failed to remove V2Ray.'
             return 0
         else
-            echo 'Removed: /usr/local/bin/v2ray'
-            echo 'Removed: /usr/local/bin/v2ctl'
-            echo 'Removed: /usr/local/lib/v2ray'
-            echo 'Removed: /etc/rc.d/v2ray'
-            echo 'Please execute the command: rcctl disable v2ray'
-            colorEcho "$GREEN" 'V2Ray has been removed.'
-            colorEcho "$BLUE" 'If necessary, manually delete the configuration and log files.'
-            colorEcho "$BLUE" 'e.g., /etc/v2ray and /var/log/v2ray...'
+            echo 'removed: /usr/local/bin/v2ray'
+            echo 'removed: /usr/local/bin/v2ctl'
+            echo 'removed: /usr/local/lib/v2ray'
+            echo 'removed: /etc/rc.d/v2ray'
+            echo 'info: Please execute the command: rcctl disable v2ray'
+            echo 'info: V2Ray has been removed.'
+            echo 'info: If necessary, manually delete the configuration and log files.'
+            echo 'info: e.g., /etc/v2ray and /var/log/v2ray...'
             return 0
         fi
     else
@@ -375,12 +335,12 @@ checkUpdate() {
     getVersion
     RETVAL="$?"
     if [[ $RETVAL -eq '0' ]]; then
-        colorEcho "$BLUE" "No new version. The current version is the latest release $NEW_VER."
+        echo "info: No new version. The current version is the latest release $NEW_VER."
     elif [[ "$RETVAL" -eq '1' ]]; then
-        colorEcho "$BLUE" "Found the latest release of V2Ray $NEW_VER. (Current release: $CUR_VER)"
+        echo "info: Found the latest release of V2Ray $NEW_VER. (Current release: $CUR_VER)"
     elif [[ $RETVAL -eq '2' ]]; then
         echo 'error: V2Ray is not installed.'
-        colorEcho "$BLUE" "The latest release of V2Ray is $NEW_VER."
+        echo "info: The latest release of V2Ray is $NEW_VER."
     fi
     return 0
 }
@@ -392,7 +352,6 @@ main() {
     [[ "$REMOVE" -eq '1' ]] && remove && return
 
     local ARCH="$(uname -m)"
-    VDIS="$(archAffix)"
 
     # extract local file
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
@@ -407,28 +366,20 @@ main() {
         getVersion
         RETVAL="$?"
         if [[ "$RETVAL" -eq '0' ]] && [[ "$FORCE" -ne '1' ]]; then
-            colorEcho "$BLUE" "The latest version $CUR_VER is installed."
-            if [[ -n "$ERROR_IF_UPTODATE" ]]; then
-                return 10
-            fi
+            echo "info: The latest version $CUR_VER is installed."
             return
         elif [[ "$RETVAL" -eq '3' ]]; then
             return 3
         else
-            colorEcho "$BLUE" "Installing V2Ray $NEW_VER for $ARCH"
+            echo "info: Installing V2Ray $NEW_VER for $ARCH"
             downloadV2Ray || return "$?"
             installSoftware unzip || return "$?"
             extract "$ZIPFILE" || return "$?"
         fi
     fi
 
-    if [[ -n "$EXTRACT_ONLY" ]]; then
-        colorEcho "$GREEN" "V2Ray has been extracted to $VSRC_ROOT and is exiting..."
-        return 0
-    fi
-
     if [[ -n "$(pgrep v2ray)" ]]; then
-        V2RAY_RUNNING='1'
+        V2RAY_RUNNING='0'
         stopV2Ray
     fi
     installV2Ray || return "$?"
@@ -442,11 +393,11 @@ main() {
     echo 'installed: /etc/rc.d/v2ray'
     echo 'Please execute the command: rcctl enable v2ray'
     rm -rf /tmp/v2ray
-    echo 'Removed: /tmp/v2ray'
-    if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
+    echo 'removed: /tmp/v2ray'
+    if [[ "$V2RAY_RUNNING" -eq '0' ]]; then
         startV2Ray
     fi
-    colorEcho "$GREEN" "V2Ray $NEW_VER is installed."
+    echo "info: V2Ray $NEW_VER is installed."
     return 0
 }
 
