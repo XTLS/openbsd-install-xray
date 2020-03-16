@@ -129,7 +129,7 @@ getVersion() {
         RETVAL="$?"
         CUR_VER="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f2))"
         TAG_URL='https://api.github.com/repos/v2ray/v2ray-core/releases/latest'
-        NEW_VER="$(versionNumber $(curl $PROXY -s $TAG_URL --connect-timeout 10 | grep 'tag_name' | cut -d \" -f 4))"
+        NEW_VER="$(versionNumber $(curl $PROXY $TAG_URL --connect-timeout 10 -s | grep 'tag_name' | cut -d \" -f 4))"
         if [[ "$?" -ne '0' ]] || [[ "$NEW_VER" == '' ]]; then
             echo 'error: Failed to get release information, please check your network.'
             return 3
@@ -236,7 +236,7 @@ installV2Ray(){
 installStartupServiceFile() {
     if [[ ! -f '/etc/rc.d/v2ray' ]]; then
         mkdir "$VSRC_ROOT/rc.d"
-        curl -o "$VSRC_ROOT/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray -#
+        curl -o "$VSRC_ROOT/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray -s
         install -m 755 -g bin "$VSRC_ROOT/rc.d/v2ray" /etc/rc.d/v2ray
     fi
 }
