@@ -37,7 +37,6 @@ RCCTL_CMD="$(command -v rcctl 2>/dev/null)"
 BLUE='36m' # Info message
 GREEN='32m' # Success message
 RED='31m' # Error message
-YELLOW='33m' # Warning message
 
 ###########################
 while [[ "$#" -gt 0 ]]; do
@@ -59,7 +58,7 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --version)
             if [[ -z "$2" ]]; then
-                echo 'error: please specify the version'
+                echo 'error: Please specify the version.'
                 exit 1
             fi
             VERSION="$2"
@@ -75,7 +74,7 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         -l | --local)
             if [[ -z "$2" ]]; then
-                echo 'error: please specify a local file'
+                echo 'error: Please specify a local file.'
                 exit 1
             fi
             LOCAL="$2"
@@ -83,7 +82,7 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         -p | --proxy)
             if [[ -z "$2" ]]; then
-                echo 'error: please specify a proxy address'
+                echo 'error: Please specify a proxy address.'
                 exit 1
             fi
             PROXY="-x $2"
@@ -235,7 +234,7 @@ stopV2Ray() {
         "$RCCTL_CMD" stop v2ray
     fi
     if [[ "$?" -ne '0' ]]; then
-        colorEcho "$YELLOW" 'Stopping the V2Ray service failed.'
+        echo 'error: Stopping the V2Ray service failed.'
         return 2
     fi
     colorEcho "$BLUE" 'Stop the V2Ray service.'
@@ -247,7 +246,7 @@ startV2Ray() {
         "$RCCTL_CMD" start v2ray
     fi
     if [[ "$?" -ne 0 ]]; then
-        colorEcho "$YELLOW" 'Failed to start V2Ray service.'
+        echo 'error: Failed to start V2Ray service.'
         return 2
     fi
     colorEcho "$BLUE" 'Start the V2Ray service.'
@@ -262,7 +261,7 @@ installFile() {
         ERROR="$(install -m 755 -g bin $VSRC_ROOT/$NAME /usr/local/lib/v2ray/$NAME)"
     fi
     if [[ "$?" -ne '0' ]]; then
-        colorEcho "$YELLOW" "$ERROR"
+        echo "error: $ERROR."
         return 1
     fi
     return 0
@@ -285,7 +284,7 @@ installV2Ray(){
         install -d /etc/v2ray
         install -m 644 "$VSRC_ROOT/vpoint_vmess_freedom.json" /etc/v2ray/config.json
         if [[ "$?" -ne '0' ]]; then
-            colorEcho "$YELLOW" 'Unable to create V2Ray profile, please create it manually.'
+            echo 'error: Unable to create V2Ray profile, please create it manually.'
             return 1
         fi
         let PORT="$RANDOM+10000"
@@ -365,7 +364,7 @@ remove() {
             return 0
         fi
     else
-        colorEcho "$YELLOW" 'V2Ray is not installed.'
+        echo 'error: V2Ray is not installed.'
         return 0
     fi
 }
@@ -380,7 +379,7 @@ checkUpdate() {
     elif [[ "$RETVAL" -eq '1' ]]; then
         colorEcho "$BLUE" "Found the latest release of V2Ray $NEW_VER. (Current release: $CUR_VER)"
     elif [[ $RETVAL -eq '2' ]]; then
-        colorEcho "$YELLOW" 'V2Ray is not installed.'
+        echo 'error: V2Ray is not installed.'
         colorEcho "$BLUE" "The latest release of V2Ray is $NEW_VER."
     fi
     return 0
@@ -397,7 +396,7 @@ main() {
 
     # extract local file
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
-        colorEcho "$YELLOW" 'Installing V2Ray from a local file. Please make sure the file is valid because we cannot determine it.'
+        echo 'error: Installing V2Ray from a local file. Please make sure the file is valid because we cannot determine it.'
         NEW_VER='local'
         installSoftware unzip || return "$?"
         rm -rf /tmp/v2ray
