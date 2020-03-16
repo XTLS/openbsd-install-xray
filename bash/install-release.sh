@@ -13,8 +13,24 @@
 DIST_SRC='github'
 VSRC_ROOT='/tmp/v2ray'
 
-VDIS="$(archAffix)"
-ZIPFILE="/tmp/v2ray/v2ray-openbsd-$VDIS.zip"
+arch() {
+    case "$(arch -s)" in
+        i686 | i386)
+            echo '32'
+            ;;
+        x86_64 | amd64)
+            echo '64'
+            ;;
+        *)
+            echo "error: The architecture is not supported."
+            exit 1
+            ;;
+    esac
+    return 0
+}
+BIT="$(arch)"
+
+ZIPFILE="/tmp/v2ray/v2ray-openbsd-$BIT.zip"
 
 RCCTL_CMD="$(command -v rcctl 2>/dev/null)"
 
@@ -68,28 +84,13 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 ###############################
-archAffix() {
-    case "$(uname -m)" in
-        i686 | i386)
-            echo '32'
-            ;;
-        x86_64 | amd64)
-            echo '64'
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-    return 0
-}
-
 downloadV2Ray() {
     rm -rf /tmp/v2ray
     mkdir -p /tmp/v2ray
     if [[ "$DIST_SRC" == 'jsdelivr' ]]; then
-        DOWNLOAD_LINK="https://cdn.jsdelivr.net/gh/v2ray/dist/v2ray-openbsd-$VDIS.zip"
+        DOWNLOAD_LINK="https://cdn.jsdelivr.net/gh/v2ray/dist/v2ray-openbsd-$BIT.zip"
     else
-        DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VER/v2ray-openbsd-$VDIS.zip"
+        DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VER/v2ray-openbsd-$BIT.zip"
     fi
     echo "info: Downloading V2Ray: $DOWNLOAD_LINK"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIPFILE" "$DOWNLOAD_LINK"
@@ -351,8 +352,7 @@ main() {
     [[ "$CHECK" -eq '1' ]] && checkUpdate && return
     [[ "$REMOVE" -eq '1' ]] && remove && return
 
-    local ARCH="$(uname -m)"
-
+    ARCH="$(arch -s)"
     # extract local file
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
         echo 'error: Installing V2Ray from a local file. Please make sure the file is valid because we cannot determine it.'
