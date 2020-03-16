@@ -173,7 +173,7 @@ getPMT() {
 extract(){
     colorEcho "$BLUE" 'Extracting V2Ray package to /tmp/v2ray.'
     mkdir -p /tmp/v2ray
-    unzip "$1" -d "$VSRC_ROOT"
+    unzip "$1" -d "$VSRC_ROOT" -q
     if [[ "$?" -ne '0' ]]; then
         colorEcho "$RED" 'Failed to extract V2Ray.'
         return 2
@@ -425,6 +425,13 @@ main() {
     fi
     installV2Ray || return "$?"
     installInitScript || return "$?"
+    echo 'installed: /usr/local/bin/v2ray'
+    echo 'installed: /usr/local/bin/v2ctl'
+    echo 'installed: /usr/local/lib/v2ray/geoip.dat'
+    echo 'installed: /usr/local/lib/v2ray/geosite.dat'
+    echo 'installed: /etc/v2ray/config.json'
+    echo 'installed: /var/log/v2ray'
+    echo 'installed: /etc/rc.d/v2ray'
     if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
         colorEcho "$BLUE" 'Restarting V2Ray service.'
         startV2Ray
