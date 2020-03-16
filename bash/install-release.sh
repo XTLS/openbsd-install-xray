@@ -389,7 +389,7 @@ main() {
 
     # extract local file
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
-        colorEcho "$YELLOW" 'Installing V2Ray via local file. Please make sure the file is a valid V2Ray package, as we are not able to determine that.'
+        colorEcho "$YELLOW" 'Installing V2Ray from a local file. Please make sure the file is valid because we cannot determine it.'
         NEW_VER='local'
         installSoftware unzip || return "$?"
         rm -rf /tmp/v2ray
@@ -433,12 +433,13 @@ main() {
     echo 'installed: /etc/v2ray/config.json'
     echo 'installed: /var/log/v2ray'
     echo 'installed: /etc/rc.d/v2ray'
+    rm -rf /tmp/v2ray
+    echo 'Removed: /tmp/v2ray'
     if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
-        colorEcho "$BLUE" 'Restarting V2Ray service.'
         startV2Ray
+        colorEcho "$BLUE" 'Restart the V2Ray service.'
     fi
     colorEcho "$GREEN" "V2Ray $NEW_VER is installed."
-    rm -rf /tmp/v2ray
     return 0
 }
 
