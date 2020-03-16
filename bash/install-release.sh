@@ -58,6 +58,10 @@ while [[ "$#" -gt 0 ]]; do
             DIST_SRC="$2"
             ;;
         --version)
+            if [[ -z "$2" ]]; then
+                echo 'error: please specify the version'
+                exit 1
+            fi
             VERSION="$2"
             ;;
         -c | --check)
@@ -331,12 +335,12 @@ installInitScript() {
 showHelp() {
     echo "usage: $0 [--remove] [--version] [-cfhlp]"
     echo '      --remove    Remove V2Ray'
-    echo '      --version   Install a specific version, e.g., use --version v3.15'
+    echo '      --version   Install the specified version, e.g., --version v3.15'
     echo '  -c, --check     Check for updates'
     echo '  -f, --force     Force installation'
     echo '  -h, --help      Show help'
     echo '  -l, --local     Install from local files'
-    echo '  -p, --proxy     To download through a proxy server, use -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:3128, etc.'
+    echo '  -p, --proxy     Download through a proxy server, e.g., -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:8118'
 }
 
 remove() {
