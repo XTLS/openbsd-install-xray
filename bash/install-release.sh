@@ -173,7 +173,7 @@ getPMT() {
 extract(){
     colorEcho "$BLUE" 'Extracting V2Ray package to /tmp/v2ray.'
     mkdir -p /tmp/v2ray
-    unzip "$1" -d "$VSRC_ROOT" -q
+    unzip -q "$1" -d "$VSRC_ROOT"
     if [[ "$?" -ne '0' ]]; then
         colorEcho "$RED" 'Failed to extract V2Ray.'
         return 2
