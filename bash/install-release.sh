@@ -304,8 +304,8 @@ installV2Ray(){
     sed -i "s/10086/$PORT/g" /etc/v2ray/config.json
     sed -i "s/23ad6b10-8d1a-40f7-8ad0-e3e35cd38297/$UUID/g" /etc/v2ray/config.json
 
-    colorEcho "$BLUE" "PORT:$PORT"
-    colorEcho "$BLUE" "UUID:$UUID"
+    colorEcho "$BLUE" "PORT: $PORT"
+    colorEcho "$BLUE" "UUID: $UUID"
     fi
     if [[ ! -d '/var/log/v2ray' ]]; then
         install -do www /var/log/v2ray
@@ -323,14 +323,14 @@ installInitScript() {
 }
 
 showHelp() {
-    echo "./install-release.sh [-h] [-c] [--remove] [-p proxy] [-f] [--version vx.y.z] [-l file]"
-    echo "  -h, --help            Show help"
-    echo "  -p, --proxy           To download through a proxy server, use -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:3128 etc"
-    echo "  -f, --force           Force install"
-    echo "      --version         Install a particular version, use --version v3.15"
-    echo "  -l, --local           Install from a local file"
-    echo "      --remove          Remove installed V2Ray"
-    echo "  -c, --check           Check for update"
+    echo "./install-release.sh [--remove] [--version] [-cfhlp]"
+    echo "      --remove    Remove V2Ray"
+    echo "      --version   Install a specific version, e.g., use --version v3.15"
+    echo "  -c, --check     Check for updates"
+    echo "  -f, --force     Force installation"
+    echo "  -h, --help      Show help"
+    echo "  -l, --local     Install from local files"
+    echo "  -p, --proxy     To download through a proxy server, use -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:3128, etc."
 }
 
 remove() {
