@@ -304,14 +304,12 @@ remove() {
 }
 
 checkUpdate() {
-    echo 'Checking for update.'
     getVersion
-    RETVAL="$?"
-    if [[ $RETVAL -eq '0' ]]; then
+    if [[ "$?" -eq '0' ]]; then
         echo "info: No new version. The current version is the latest release $NEW_VER."
-    elif [[ "$RETVAL" -eq '1' ]]; then
+    elif [[ "$?" -eq '1' ]]; then
         echo "info: Found the latest release of V2Ray $NEW_VER. (Current release: $CUR_VER)"
-    elif [[ $RETVAL -eq '2' ]]; then
+    elif [[ "$?" -eq '2' ]]; then
         echo 'error: V2Ray is not installed.'
         echo "info: The latest release of V2Ray is $NEW_VER."
     fi
