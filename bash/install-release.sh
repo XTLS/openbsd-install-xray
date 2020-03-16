@@ -70,10 +70,18 @@ while [[ "$#" -gt 0 ]]; do
             HELP='1'
             ;;
         -l | --local)
+            if [[ -z "$2" ]]; then
+                echo 'error: please specify a local file'
+                exit 1
+            fi
             LOCAL="$2"
             LOCAL_INSTALL='1'
             ;;
         -p | --proxy)
+            if [[ -z "$2" ]]; then
+                echo 'error: please specify a proxy address'
+                exit 1
+            fi
             PROXY="-x $2"
             ;;
         *)
