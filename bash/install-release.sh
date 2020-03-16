@@ -90,7 +90,7 @@ done
 
 ###############################
 colorEcho() {
-    echo -e "\033[${1}${@:2}\033[0m" 1>& 2
+    echo -e "\033[${1}${@:2}\033[0m"
 }
 
 archAffix() {
@@ -323,8 +323,8 @@ installInitScript() {
     fi
 }
 
-Help() {
-    cat - 1>& 2 << EOF
+showHelp() {
+    cat << EOF
 ./install-release.sh [-h] [-c] [--remove] [-p proxy] [-f] [--version vx.y.z] [-l file]
   -h, --help            Show help
   -p, --proxy           To download through a proxy server, use -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:3128 etc
@@ -377,7 +377,7 @@ checkUpdate() {
 
 main() {
     #helping information
-    [[ "$HELP" -eq '1' ]] && Help && return
+    [[ "$HELP" -eq '1' ]] && showHelp && return
     [[ "$CHECK" -eq '1' ]] && checkUpdate && return
     [[ "$REMOVE" -eq '1' ]] && remove && return
 
