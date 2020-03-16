@@ -171,13 +171,14 @@ getPMT() {
 }
 
 extract(){
-    colorEcho "$BLUE" 'Extracting V2Ray package to /tmp/v2ray.'
     mkdir -p /tmp/v2ray
     unzip -q "$1" -d "$VSRC_ROOT"
     if [[ "$?" -ne '0' ]]; then
         colorEcho "$RED" 'Failed to extract V2Ray.'
         return 2
     fi
+    echo '---'
+    colorEcho "$BLUE" 'Extract the V2Ray package to /tmp/v2ray and prepare it for installation.'
     if [[ -d "/tmp/v2ray/v2ray-$NEW_VER-openbsd-$VDIS" ]]; then
         VSRC_ROOT="/tmp/v2ray/v2ray-$NEW_VER-openbsd-$VDIS"
     fi
@@ -279,7 +280,7 @@ installV2Ray(){
         install -d /etc/v2ray
         install -m 644 "$VSRC_ROOT/vpoint_vmess_freedom.json" /etc/v2ray/config.json
         if [[ "$?" -ne '0' ]]; then
-            colorEcho "$YELLOW" 'Failed to create V2Ray configuration file. Please create it manually.'
+            colorEcho "$YELLOW" 'Unable to create V2Ray profile, please create it manually.'
             return 1
         fi
         let PORT="$RANDOM+10000"
