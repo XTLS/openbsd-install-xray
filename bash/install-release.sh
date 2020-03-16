@@ -9,149 +9,142 @@
 # 2: Application error
 # 3: Network error
 
-# Judge Computer Architecture
-architecture() {
-    case "$(arch -s)" in
-        i686 | i386)
-            echo '32'
-            ;;
-        x86_64 | amd64)
-            echo '64'
-            ;;
-        *)
-            echo "error: The architecture is not supported."
-            exit 1
-            ;;
-    esac
-    return 0
-}
-BIT="$(architecture)"
+# Judge computer systems and architecture
+case "$(arch 2> /dev/null)" in
+    OpenBSD*)
+        case "$(uname -m)" in
+            i686 | i386)
+                BIT='32'
+                ;;
+            x86_64 | amd64)
+                BIT='64'
+                ;;
+            *)
+                echo "error: The architecture is not supported."
+                exit 1
+                ;;
+        esac
+        ;;
+    *)
+        echo "error: This operating system is not supported."
+        exit 1
+        ;;
+esac
 
-DIST_SRC='github'
-RCCTL_CMD="$(command -v rcctl 2>/dev/null)"
-VSRC_ROOT='/tmp/v2ray'
-ZIPFILE="/tmp/v2ray/v2ray-openbsd-$BIT.zip"
-
-###########################
-while [[ "$#" -gt 0 ]]; do
+# Judgment parameters
+while [[ "$#" -gt '0' ]]; do
     case "$1" in
         --remove)
+            if [[ "$#" -gt '1' ]]; then
+                echo 'error: Please enter the correct command.'
+                exit 1
+            fi
             REMOVE='1'
             ;;
-        --source)
-            DIST_SRC="$2"
-            ;;
         --version)
-            if [[ -z "$2" ]]; then
-                echo 'error: Please specify the version.'
+            if [[ "$#" -gt '2' ]] || [[ -z "$2" ]]; then
+                echo 'error: Please specify the correct version.'
                 exit 1
             fi
             VERSION="$2"
             ;;
         -c | --check)
+            if [[ "$#" -gt '1' ]]; then
+                echo 'error: Please enter the correct command.'
+                exit 1
+            fi
             CHECK='1'
             ;;
         -f | --force)
+            if [[ "$#" -gt '1' ]]; then
+                echo 'error: Please enter the correct command.'
+                exit 1
+            fi
             FORCE='1'
             ;;
         -h | --help)
+            if [[ "$#" -gt '1' ]]; then
+                echo 'error: Please enter the correct command.'
+                exit 1
+            fi
             HELP='1'
             ;;
         -l | --local)
-            if [[ -z "$2" ]]; then
-                echo 'error: Please specify a local file.'
+            if [[ "$#" -gt '2' ]] || [[ -z "$2" ]]; then
+                echo 'error: Please specify the correct local file.'
                 exit 1
             fi
             LOCAL="$2"
             LOCAL_INSTALL='1'
             ;;
         -p | --proxy)
-            if [[ -z "$2" ]]; then
-                echo 'error: Please specify a proxy address.'
+            if [[ "$#" -gt '2' ]] || [[ -z "$2" ]]; then
+                echo 'error: Please specify the correct proxy server address.'
                 exit 1
             fi
             PROXY="-x $2"
             ;;
         *)
-            # unknown option
             echo "$0: unknown option -- -"
             exit 1
             ;;
     esac
-    shift # past argument or value
+    shift
 done
 
-###############################
-downloadV2Ray() {
-    rm -rf /tmp/v2ray
-    mkdir -p /tmp/v2ray
-    if [[ "$DIST_SRC" == 'jsdelivr' ]]; then
-        DOWNLOAD_LINK="https://cdn.jsdelivr.net/gh/v2ray/dist/v2ray-openbsd-$BIT.zip"
-    else
-        DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VER/v2ray-openbsd-$BIT.zip"
-    fi
-    echo "info: Downloading V2Ray: $DOWNLOAD_LINK"
-    curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIPFILE" "$DOWNLOAD_LINK"
-    curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIPFILE.dgst" "$DOWNLOAD_LINK.dgst"
-    if [[ "$?" -ne '0' ]]; then
-        echo 'error: Download failed! Please check your network or try again.'
-        return 3
-    fi
-    for LISTSUM in 'md5' 'sha1' 'sha256' 'sha512'; do
-        SUM="$($LISTSUM $ZIPFILE | sed 's/.* //')"
-        CHECKSUM="$(grep ${LISTSUM^^} $ZIPFILE.dgst | sed 's/.* //')"
-        if [[ "$SUM" != "$CHECKSUM" ]]; then
-            echo 'error: Check failed! Please check your network or try again.'
-            return 3
-        fi
-    done
-    return 0
-}
+VSRC_ROOT='/tmp/v2ray'
+ZIP_FILE="/tmp/v2ray/v2ray-openbsd-$BIT.zip"
 
 installSoftware() {
     COMPONENT="$1"
     if [[ -n "$(command -v $COMPONENT)" ]]; then
-        return 0
+        return
     fi
-
-    getPMT
-    if [[ "$?" -eq '1' ]]; then
-        echo "error: The system package manager tool isn't pkg_add, please install $COMPONENT manually."
-        return 1
-    fi
-
     echo "info: Installing $COMPONENT"
-    ${CMD_INSTALL} "$COMPONENT--"
+    pkg_add "$COMPONENT--"
     if [[ "$?" -ne '0' ]]; then
-        echo "error: Failed to install $COMPONENT. Please install it manually."
-        return 1
+        echo "error: Installation of $COMPONENT failed, please check your network."
+        exit 1
     fi
-    return 0
 }
 
-# return 1: not pkg_add
-getPMT() {
-    if [[ -n "$(command -v pkg_add)" ]]; then
-        CMD_INSTALL='pkg_add'
-    else
-        return 1
+downloadV2Ray() {
+    rm -rf /tmp/v2ray
+    mkdir -p /tmp/v2ray
+    DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VER/v2ray-openbsd-$BIT.zip"
+    echo "info: Downloading V2Ray: $DOWNLOAD_LINK"
+    curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK"
+    if [[ "$?" -ne '0' ]]; then
+        echo 'error: Download failed! Please check your network or try again.'
+        exit 1
     fi
-    return 0
+    curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE.dgst" "$DOWNLOAD_LINK.dgst"
+    if [[ "$?" -ne '0' ]]; then
+        echo 'error: Download failed! Please check your network or try again.'
+        exit 1
+    fi
+    for LISTSUM in 'md5' 'sha1' 'sha256' 'sha512'; do
+        SUM="$($LISTSUM $ZIP_FILE | sed 's/.* //')"
+        CHECKSUM="$(grep ${LISTSUM^^} $ZIP_FILE.dgst | sed 's/.* //')"
+        if [[ "$SUM" != "$CHECKSUM" ]]; then
+            echo 'error: Check failed! Please check your network or try again.'
+            exit 1
+        fi
+    done
 }
 
-extract(){
+decompression(){
     mkdir -p /tmp/v2ray
     unzip -q "$1" -d "$VSRC_ROOT"
     if [[ "$?" -ne '0' ]]; then
-        echo 'error: V2Ray extraction failed.'
-        return 2
+        echo 'error: V2Ray decompression failed.'
+        exit 1
     fi
-    echo '---'
     echo 'info: Extract the V2Ray package to /tmp/v2ray and prepare it for installation.'
-    return 0
 }
 
-normalizeVersion() {
+# 0: no. 1: new V2Ray. 2: not installed. 3: check failed. 4: don't check.
+versionNumber() {
     if [[ -n "$1" ]]; then
         case "$1" in
             v*)
@@ -161,22 +154,18 @@ normalizeVersion() {
                 echo "v$1"
                 ;;
         esac
-    else
-        echo ''
     fi
 }
-
-# 1: new V2Ray. 0: no. 2: not installed. 3: check failed. 4: don't check.
 getVersion() {
     if [[ -n "$VERSION" ]]; then
-        NEW_VER="$(normalizeVersion $VERSION)"
+        NEW_VER="$(versionNumber $VERSION)"
         return 4
     else
-        VER="$(/usr/local/bin/v2ray -version 2> /dev/null)"
+        VER="$(/usr/local/bin/v2ray -version)"
         RETVAL="$?"
-        CUR_VER="$(normalizeVersion $(echo $VER | head -n 1 | cut -d ' ' -f2))"
+        CUR_VER="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f2))"
         TAG_URL='https://api.github.com/repos/v2ray/v2ray-core/releases/latest'
-        NEW_VER="$(normalizeVersion $(curl $PROXY -s $TAG_URL --connect-timeout 10 | grep 'tag_name' | cut -d \" -f 4))"
+        NEW_VER="$(versionNumber $(curl $PROXY -s $TAG_URL --connect-timeout 10 | grep 'tag_name' | cut -d \" -f 4))"
         if [[ "$?" -ne '0' ]] || [[ "$NEW_VER" == '' ]]; then
             echo 'error: Failed to fetch release information. Please check your network or try again.'
             return 3
@@ -193,8 +182,8 @@ getVersion() {
 }
 
 stopV2Ray() {
-    if [[ -n "$RCCTL_CMD" ]] || [[ -f '/etc/rc.d/v2ray' ]]; then
-        "$RCCTL_CMD" stop v2ray
+    if [[ -f '/etc/rc.d/v2ray' ]]; then
+        rcctl stop v2ray
     fi
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Stopping the V2Ray service failed.'
@@ -205,8 +194,8 @@ stopV2Ray() {
 }
 
 startV2Ray() {
-    if [[ -n "$RCCTL_CMD" ]] && [[ -f '/etc/rc.d/v2ray' ]]; then
-        "$RCCTL_CMD" start v2ray
+    if [[ -f '/etc/rc.d/v2ray' ]]; then
+        rcctl start v2ray
     fi
     if [[ "$?" -ne 0 ]]; then
         echo 'error: Failed to start V2Ray service.'
@@ -229,10 +218,6 @@ installFile() {
 installV2Ray(){
     # Install V2Ray binary to /usr/local/bin and /usr/local/lib/v2ray
     installFile v2ray
-    if [[ "$?" -ne '0' ]]; then
-        echo 'error: Failed to copy V2Ray binary and resources.'
-        return 1
-    fi
     installFile v2ctl
     install -d /usr/local/lib/v2ray
     installFile geoip.dat
@@ -242,10 +227,6 @@ installV2Ray(){
     if [[ ! -f '/etc/v2ray/config.json' ]]; then
         install -d /etc/v2ray
         install -m 644 "$VSRC_ROOT/vpoint_vmess_freedom.json" /etc/v2ray/config.json
-        if [[ "$?" -ne '0' ]]; then
-            echo 'warn: Unable to create V2Ray profile, please create it manually.'
-            return 1
-        fi
         let PORT="$RANDOM+10000"
         uuid() {
             C='89ab'
@@ -276,14 +257,14 @@ installV2Ray(){
     echo "PORT: $PORT"
     echo "UUID: $UUID"
     fi
+
     if [[ ! -d '/var/log/v2ray' ]]; then
         install -do www /var/log/v2ray
     fi
-    return 0
 }
 
-installInitScript() {
-    if [[ -n "$RCCTL_CMD" ]] && [[ ! -f '/etc/rc.d/v2ray' ]]; then
+installStartupServiceFile() {
+    if [[ ! -f '/etc/rc.d/v2ray' ]]; then
         mkdir "$VSRC_ROOT/rc.d"
         curl -o "$VSRC_ROOT/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray
         install -m 755 -g bin "$VSRC_ROOT/rc.d/v2ray" /etc/rc.d/v2ray
@@ -299,10 +280,11 @@ showHelp() {
     echo '  -h, --help      Show help'
     echo '  -l, --local     Install from local files'
     echo '  -p, --proxy     Download through a proxy server, e.g., -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:8118'
+    exit 0
 }
 
 remove() {
-    if [[ -n "$RCCTL_CMD" ]] && [[ -f '/etc/rc.d/v2ray' ]]; then
+    if [[ -f '/etc/rc.d/v2ray' ]]; then
         if [[ -n "$(pgrep v2ray)" ]]; then
             stopV2Ray
         fi
@@ -310,7 +292,7 @@ remove() {
         rm -rf /usr/local/bin/{v2ray,v2ctl} /usr/local/lib/v2ray /etc/rc.d/v2ray
         if [[ "$?" -ne '0' ]]; then
             echo 'error: Failed to remove V2Ray.'
-            return 0
+            exit 1
         else
             echo 'removed: /usr/local/bin/v2ray'
             echo 'removed: /usr/local/bin/v2ctl'
@@ -320,17 +302,16 @@ remove() {
             echo 'info: V2Ray has been removed.'
             echo 'info: If necessary, manually delete the configuration and log files.'
             echo 'info: e.g., /etc/v2ray and /var/log/v2ray...'
-            return 0
+            exit 0
         fi
     else
         echo 'error: V2Ray is not installed.'
-        return 0
+        exit 1
     fi
 }
 
 checkUpdate() {
     echo 'Checking for update.'
-    VERSION=''
     getVersion
     RETVAL="$?"
     if [[ $RETVAL -eq '0' ]]; then
@@ -341,47 +322,43 @@ checkUpdate() {
         echo 'error: V2Ray is not installed.'
         echo "info: The latest release of V2Ray is $NEW_VER."
     fi
-    return 0
+    exit 0
 }
 
 main() {
-    #helping information
-    [[ "$HELP" -eq '1' ]] && showHelp && return
-    [[ "$CHECK" -eq '1' ]] && checkUpdate && return
-    [[ "$REMOVE" -eq '1' ]] && remove && return
+    # helping information
+    [[ "$HELP" -eq '1' ]] && showHelp
+    [[ "$CHECK" -eq '1' ]] && checkUpdate
+    [[ "$REMOVE" -eq '1' ]] && remove
 
-    # extract local file
+    # decompression local file
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
         echo 'error: Installing V2Ray from a local file. Please make sure the file is valid because we cannot determine it.'
         NEW_VER='local'
-        installSoftware unzip || return "$?"
+        installSoftware unzip
         rm -rf /tmp/v2ray
-        extract "$LOCAL" || return "$?"
+        decompression "$LOCAL"
     else
-        # download via network and extract
-        installSoftware curl || return "$?"
+        # download via network and decompression
+        installSoftware curl
         getVersion
         RETVAL="$?"
         if [[ "$RETVAL" -eq '0' ]] && [[ "$FORCE" -ne '1' ]]; then
             echo "info: The latest version $CUR_VER is installed."
-            return
-        elif [[ "$RETVAL" -eq '3' ]]; then
-            return 3
         else
-            ARCH="$(arch -s)"
-            echo "info: Installing V2Ray $NEW_VER for $ARCH"
-            downloadV2Ray || return "$?"
-            installSoftware unzip || return "$?"
-            extract "$ZIPFILE" || return "$?"
+            echo "info: Installing V2Ray $NEW_VER for $(arch -s)"
+            downloadV2Ray
+            installSoftware unzip
+            decompression "$ZIP_FILE"
         fi
     fi
 
     if [[ -n "$(pgrep v2ray)" ]]; then
-        V2RAY_RUNNING='0'
+        V2RAY_RUNNING='true'
         stopV2Ray
     fi
-    installV2Ray || return "$?"
-    installInitScript || return "$?"
+    installV2Ray
+    installStartupServiceFile
     echo 'installed: /usr/local/bin/v2ray'
     echo 'installed: /usr/local/bin/v2ctl'
     echo 'installed: /usr/local/lib/v2ray/geoip.dat'
@@ -392,7 +369,7 @@ main() {
     echo 'Please execute the command: rcctl enable v2ray'
     rm -rf /tmp/v2ray
     echo 'removed: /tmp/v2ray'
-    if [[ "$V2RAY_RUNNING" -eq '0' ]]; then
+    if [[ "$V2RAY_RUNNING" == 'true' ]]; then
         startV2Ray
     fi
     echo "info: V2Ray $NEW_VER is installed."
