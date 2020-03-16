@@ -212,7 +212,10 @@ getVersion() {
         elif [[ "$RETVAL" -ne '0' ]];then
             return 2
         elif [[ "$NEW_VER" != "$CUR_VER" ]]; then
-            return 1
+            IF_VER="$(echo "$NEW_VER $CUR_VER" | awk '{ if ( $1 > $2 ) print $1; else print $2 }')"
+            if [[ "$IF_VER" == "$NEW_VER" ]]; then
+                return 1
+            fi
         fi
         return 0
     fi
@@ -361,10 +364,10 @@ checkUpdate() {
     VERSION=''
     getVersion
     RETVAL="$?"
-    if [[ "$RETVAL" -eq '1' ]]; then
-        colorEcho "$BLUE" "Found the latest release of V2Ray $NEW_VER. (Current release: $CUR_VER)"
-    elif [[ $RETVAL -eq '0' ]]; then
+    if [[ $RETVAL -eq '0' ]]; then
         colorEcho "$BLUE" "No new version. The current version is the latest release $NEW_VER."
+    elif [[ "$RETVAL" -eq '1' ]]; then
+        colorEcho "$BLUE" "Found the latest release of V2Ray $NEW_VER. (Current release: $CUR_VER)"
     elif [[ $RETVAL -eq '2' ]]; then
         colorEcho "$YELLOW" 'V2Ray is not installed.'
         colorEcho "$BLUE" "The latest release of V2Ray is $NEW_VER."
