@@ -227,14 +227,14 @@ getVersion() {
 }
 
 stopV2Ray() {
-    colorEcho "$BLUE" 'Shutting down V2Ray service.'
     if [[ -n "$RCCTL_CMD" ]] || [[ -f '/etc/rc.d/v2ray' ]]; then
         "$RCCTL_CMD" stop v2ray
     fi
     if [[ "$?" -ne '0' ]]; then
-        colorEcho "$YELLOW" 'Failed to shutdown V2Ray service.'
+        colorEcho "$YELLOW" 'Stopping the V2Ray service failed.'
         return 2
     fi
+    colorEcho "$BLUE" 'Stop the V2Ray service.'
     return 0
 }
 
@@ -246,6 +246,7 @@ startV2Ray() {
         colorEcho "$YELLOW" 'Failed to start V2Ray service.'
         return 2
     fi
+    colorEcho "$BLUE" 'Start the V2Ray service.'
     return 0
 }
 
@@ -324,7 +325,6 @@ installInitScript() {
         mkdir "$VSRC_ROOT/rc.d"
         curl -o "$VSRC_ROOT/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray
         install -m 755 -g bin "$VSRC_ROOT/rc.d/v2ray" /etc/rc.d/v2ray
-        rcctl enable v2ray
     fi
 }
 
@@ -344,14 +344,18 @@ remove() {
         if [[ -n "$(pgrep v2ray)" ]]; then
             stopV2Ray
         fi
-        rcctl disable v2ray
         NAME="$1"
         rm -rf /usr/local/bin/{v2ray,v2ctl} /usr/local/lib/v2ray /etc/rc.d/v2ray
         if [[ "$?" -ne '0' ]]; then
             colorEcho "$RED" 'Failed to remove V2Ray.'
             return 0
         else
-            colorEcho "$GREEN" 'Removed V2Ray successfully.'
+            echo 'Removed: /usr/local/bin/v2ray'
+            echo 'Removed: /usr/local/bin/v2ctl'
+            echo 'Removed: /usr/local/lib/v2ray'
+            echo 'Removed: /etc/rc.d/v2ray'
+            echo 'Please execute the command: rcctl disable v2ray'
+            colorEcho "$GREEN" 'V2Ray has been removed.'
             colorEcho "$BLUE" 'If necessary, manually delete the configuration and log files.'
             colorEcho "$BLUE" 'e.g., /etc/v2ray and /var/log/v2ray...'
             return 0
@@ -433,11 +437,11 @@ main() {
     echo 'installed: /etc/v2ray/config.json'
     echo 'installed: /var/log/v2ray'
     echo 'installed: /etc/rc.d/v2ray'
+    echo 'Please execute the command: rcctl enable v2ray'
     rm -rf /tmp/v2ray
     echo 'Removed: /tmp/v2ray'
     if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
         startV2Ray
-        colorEcho "$BLUE" 'Restart the V2Ray service.'
     fi
     colorEcho "$GREEN" "V2Ray $NEW_VER is installed."
     return 0
