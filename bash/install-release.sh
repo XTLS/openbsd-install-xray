@@ -149,12 +149,12 @@ downloadV2Ray() {
     mkdir -p /tmp/v2ray
     DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VER/v2ray-openbsd-$BIT.zip"
     echo "info: Downloading V2Ray: $DOWNLOAD_LINK"
-    curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK"
+    curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
         exit 1
     fi
-    curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE.dgst" "$DOWNLOAD_LINK.dgst"
+    curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE.dgst" "$DOWNLOAD_LINK.dgst" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
         exit 1
@@ -236,7 +236,7 @@ installV2Ray(){
 installStartupServiceFile() {
     if [[ ! -f '/etc/rc.d/v2ray' ]]; then
         mkdir "$VSRC_ROOT/rc.d"
-        curl -o "$VSRC_ROOT/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray
+        curl -o "$VSRC_ROOT/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray -#
         install -m 755 -g bin "$VSRC_ROOT/rc.d/v2ray" /etc/rc.d/v2ray
     fi
 }
