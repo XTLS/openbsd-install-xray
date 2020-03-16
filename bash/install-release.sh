@@ -361,7 +361,7 @@ remove() {
             return 0
         fi
     else
-        colorEcho "$YELLOW" 'V2Ray not found.'
+        colorEcho "$YELLOW" 'V2Ray is not installed.'
         return 0
     fi
 }
