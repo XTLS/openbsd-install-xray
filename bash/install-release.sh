@@ -107,7 +107,43 @@ installSoftware() {
         exit 1
     fi
 }
-
+versionNumber() {
+    if [[ -n "$1" ]]; then
+        case "$1" in
+            v*)
+                echo "$1"
+                ;;
+            *)
+                echo "v$1"
+                ;;
+        esac
+    fi
+}
+getVersion() {
+    # 0: no. 1: new V2Ray. 2: not installed. 3: check failed. 4: don't check.
+    if [[ -n "$VERSION" ]]; then
+        NEW_VER="$(versionNumber $VERSION)"
+        return 4
+    else
+        VER="$(/usr/local/bin/v2ray -version 2> /dev/null)"
+        RETVAL="$?"
+        CUR_VER="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f2))"
+        TAG_URL='https://api.github.com/repos/v2ray/v2ray-core/releases/latest'
+        NEW_VER="$(versionNumber $(curl $PROXY -s $TAG_URL --connect-timeout 10 | grep 'tag_name' | cut -d \" -f 4))"
+        if [[ "$?" -ne '0' ]] || [[ "$NEW_VER" == '' ]]; then
+            echo 'error: Failed to get release information, please check your network.'
+            return 3
+        elif [[ "$RETVAL" -ne '0' ]];then
+            return 2
+        elif [[ "$NEW_VER" != "$CUR_VER" ]]; then
+            IF_VER="$(echo "$NEW_VER $CUR_VER" | awk '{ if ( $1 > $2 ) print $1; else print $2 }')"
+            if [[ "$IF_VER" == "$NEW_VER" ]]; then
+                return 1
+            fi
+        fi
+        return 0
+    fi
+}
 downloadV2Ray() {
     rm -rf /tmp/v2ray
     mkdir -p /tmp/v2ray
@@ -132,7 +168,6 @@ downloadV2Ray() {
         fi
     done
 }
-
 decompression(){
     mkdir -p /tmp/v2ray
     unzip -q "$1" -d "$VSRC_ROOT"
@@ -142,69 +177,6 @@ decompression(){
     fi
     echo 'info: Extract the V2Ray package to /tmp/v2ray and prepare it for installation.'
 }
-
-# 0: no. 1: new V2Ray. 2: not installed. 3: check failed. 4: don't check.
-versionNumber() {
-    if [[ -n "$1" ]]; then
-        case "$1" in
-            v*)
-                echo "$1"
-                ;;
-            *)
-                echo "v$1"
-                ;;
-        esac
-    fi
-}
-getVersion() {
-    if [[ -n "$VERSION" ]]; then
-        NEW_VER="$(versionNumber $VERSION)"
-        return 4
-    else
-        VER="$(/usr/local/bin/v2ray -version)"
-        RETVAL="$?"
-        CUR_VER="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f2))"
-        TAG_URL='https://api.github.com/repos/v2ray/v2ray-core/releases/latest'
-        NEW_VER="$(versionNumber $(curl $PROXY -s $TAG_URL --connect-timeout 10 | grep 'tag_name' | cut -d \" -f 4))"
-        if [[ "$?" -ne '0' ]] || [[ "$NEW_VER" == '' ]]; then
-            echo 'error: Failed to fetch release information. Please check your network or try again.'
-            return 3
-        elif [[ "$RETVAL" -ne '0' ]];then
-            return 2
-        elif [[ "$NEW_VER" != "$CUR_VER" ]]; then
-            IF_VER="$(echo "$NEW_VER $CUR_VER" | awk '{ if ( $1 > $2 ) print $1; else print $2 }')"
-            if [[ "$IF_VER" == "$NEW_VER" ]]; then
-                return 1
-            fi
-        fi
-        return 0
-    fi
-}
-
-stopV2Ray() {
-    if [[ -f '/etc/rc.d/v2ray' ]]; then
-        rcctl stop v2ray
-    fi
-    if [[ "$?" -ne '0' ]]; then
-        echo 'error: Stopping the V2Ray service failed.'
-        return 2
-    fi
-    echo 'info: Stop the V2Ray service.'
-    return 0
-}
-
-startV2Ray() {
-    if [[ -f '/etc/rc.d/v2ray' ]]; then
-        rcctl start v2ray
-    fi
-    if [[ "$?" -ne 0 ]]; then
-        echo 'error: Failed to start V2Ray service.'
-        return 2
-    fi
-    echo 'info: Start the V2Ray service.'
-    return 0
-}
-
 installFile() {
     NAME="$1"
     if [[ "$NAME" == 'v2ray' ]] || [[ "$NAME" == 'v2ctl' ]]; then
@@ -214,7 +186,6 @@ installFile() {
     fi
     return 0
 }
-
 installV2Ray(){
     # Install V2Ray binary to /usr/local/bin and /usr/local/lib/v2ray
     installFile v2ray
@@ -262,13 +233,35 @@ installV2Ray(){
         install -do www /var/log/v2ray
     fi
 }
-
 installStartupServiceFile() {
     if [[ ! -f '/etc/rc.d/v2ray' ]]; then
         mkdir "$VSRC_ROOT/rc.d"
         curl -o "$VSRC_ROOT/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray
         install -m 755 -g bin "$VSRC_ROOT/rc.d/v2ray" /etc/rc.d/v2ray
     fi
+}
+
+startV2Ray() {
+    if [[ -f '/etc/rc.d/v2ray' ]]; then
+        rcctl start v2ray
+    fi
+    if [[ "$?" -ne 0 ]]; then
+        echo 'error: Failed to start V2Ray service.'
+        return 2
+    fi
+    echo 'info: Start the V2Ray service.'
+    return 0
+}
+stopV2Ray() {
+    if [[ -f '/etc/rc.d/v2ray' ]]; then
+        rcctl stop v2ray
+    fi
+    if [[ "$?" -ne '0' ]]; then
+        echo 'error: Stopping the V2Ray service failed.'
+        return 2
+    fi
+    echo 'info: Stop the V2Ray service.'
+    return 0
 }
 
 showHelp() {
@@ -342,8 +335,7 @@ main() {
         # download via network and decompression
         installSoftware curl
         getVersion
-        RETVAL="$?"
-        if [[ "$RETVAL" -eq '0' ]] && [[ "$FORCE" -ne '1' ]]; then
+        if [[ "$?" -eq '0' ]] && [[ "$FORCE" -ne '1' ]]; then
             echo "info: The latest version $CUR_VER is installed."
         else
             echo "info: Installing V2Ray $NEW_VER for $(arch -s)"
@@ -373,7 +365,6 @@ main() {
         startV2Ray
     fi
     echo "info: V2Ray $NEW_VER is installed."
-    return 0
 }
 
 main
