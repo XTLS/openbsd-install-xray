@@ -205,7 +205,6 @@ getVersion() {
         CUR_VER="$(normalizeVersion $(echo $VER | head -n 1 | cut -d ' ' -f2))"
         TAG_URL='https://api.github.com/repos/v2ray/v2ray-core/releases/latest'
         NEW_VER="$(normalizeVersion $(curl $PROXY -s $TAG_URL --connect-timeout 10 | grep 'tag_name' | cut -d \" -f 4))"
-
         if [[ "$?" -ne '0' ]] || [[ "$NEW_VER" == '' ]]; then
             colorEcho "$RED" 'Failed to fetch release information. Please check your network or try again.'
             return 3
@@ -324,16 +323,14 @@ installInitScript() {
 }
 
 showHelp() {
-    cat << EOF
-./install-release.sh [-h] [-c] [--remove] [-p proxy] [-f] [--version vx.y.z] [-l file]
-  -h, --help            Show help
-  -p, --proxy           To download through a proxy server, use -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:3128 etc
-  -f, --force           Force install
-      --version         Install a particular version, use --version v3.15
-  -l, --local           Install from a local file
-      --remove          Remove installed V2Ray
-  -c, --check           Check for update
-EOF
+    echo "./install-release.sh [-h] [-c] [--remove] [-p proxy] [-f] [--version vx.y.z] [-l file]"
+    echo "  -h, --help            Show help"
+    echo "  -p, --proxy           To download through a proxy server, use -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:3128 etc"
+    echo "  -f, --force           Force install"
+    echo "      --version         Install a particular version, use --version v3.15"
+    echo "  -l, --local           Install from a local file"
+    echo "      --remove          Remove installed V2Ray"
+    echo "  -c, --check           Check for update"
 }
 
 remove() {
