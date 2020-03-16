@@ -10,79 +10,75 @@
 # 3: Network error
 
 # CLI arguments
-PROXY=''
-HELP=''
-FORCE=''
 CHECK=''
+DIST_SRC='github'
+ERROR_IF_UPTODATE=''
+EXTRACT_ONLY=''
+FORCE=''
+HELP=''
+LOCAL=''
+LOCAL_INSTALL=''
+PROXY=''
 REMOVE=''
 VERSION=''
 VSRC_ROOT='/tmp/v2ray'
-EXTRACT_ONLY=''
-LOCAL=''
-LOCAL_INSTALL=''
-DIST_SRC='github'
-ERROR_IF_UPTODATE=''
 
 CUR_VER=''
 NEW_VER=''
+V2RAY_RUNNING='0'
 VDIS=''
 ZIPFILE='/tmp/v2ray/v2ray.zip'
-V2RAY_RUNNING='0'
 
 CMD_INSTALL=''
 
 RCCTL_CMD="$(command -v rcctl 2>/dev/null)"
 
 ####### color code ########
-RED='31m' # Error message
-GREEN='32m' # Success message
-YELLOW='33m' # Warning message
 BLUE='36m' # Info message
+GREEN='32m' # Success message
+RED='31m' # Error message
+YELLOW='33m' # Warning message
 
 ###########################
 while [[ "$#" -gt 0 ]]; do
     case "$1" in
-        -p | --proxy)
-            PROXY="-x $2"
-            shift # past argument
-            ;;
-        -h | --help)
-            HELP='1'
-            ;;
-        -f | --force)
-            FORCE='1'
-            ;;
-        -c | --check)
-            CHECK='1'
-            ;;
-        --remove)
-            REMOVE='1'
-            ;;
-        --version)
-            VERSION="$2"
-            shift
+        --errifuptodate)
+            ERROR_IF_UPTODATE='1'
             ;;
         --extract)
             VSRC_ROOT="$2"
-            shift
             ;;
         --extractonly)
             EXTRACT_ONLY='1'
             ;;
-        -l | --local)
-            LOCAL="$2"
-            LOCAL_INSTALL='1'
-            shift
+        --remove)
+            REMOVE='1'
             ;;
         --source)
             DIST_SRC="$2"
-            shift
             ;;
-        --errifuptodate)
-            ERROR_IF_UPTODATE='1'
+        --version)
+            VERSION="$2"
+            ;;
+        -c | --check)
+            CHECK='1'
+            ;;
+        -f | --force)
+            FORCE='1'
+            ;;
+        -h | --help)
+            HELP='1'
+            ;;
+        -l | --local)
+            LOCAL="$2"
+            LOCAL_INSTALL='1'
+            ;;
+        -p | --proxy)
+            PROXY="-x $2"
             ;;
         *)
             # unknown option
+            echo '$0: unknown option -- -'
             ;;
     esac
     shift # past argument or value
@@ -323,14 +319,14 @@ installInitScript() {
 }
 
 showHelp() {
-    echo "./install-release.sh [--remove] [--version] [-cfhlp]"
-    echo "      --remove    Remove V2Ray"
-    echo "      --version   Install a specific version, e.g., use --version v3.15"
-    echo "  -c, --check     Check for updates"
-    echo "  -f, --force     Force installation"
-    echo "  -h, --help      Show help"
-    echo "  -l, --local     Install from local files"
-    echo "  -p, --proxy     To download through a proxy server, use -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:3128, etc."
+    echo "usage: $0 [--remove] [--version] [-cfhlp]"
+    echo '      --remove    Remove V2Ray'
+    echo '      --version   Install a specific version, e.g., use --version v3.15'
+    echo '  -c, --check     Check for updates'
+    echo '  -f, --force     Force installation'
+    echo '  -h, --help      Show help'
+    echo '  -l, --local     Install from local files'
+    echo '  -p, --proxy     To download through a proxy server, use -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:3128, etc.'
 }
 
 remove() {
