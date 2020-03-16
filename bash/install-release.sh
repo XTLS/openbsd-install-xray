@@ -13,7 +13,7 @@
 DIST_SRC='github'
 VSRC_ROOT='/tmp/v2ray'
 
-arch() {
+architecture() {
     case "$(arch -s)" in
         i686 | i386)
             echo '32'
@@ -28,7 +28,7 @@ arch() {
     esac
     return 0
 }
-BIT="$(arch)"
+BIT="$(architecture)"
 
 ZIPFILE="/tmp/v2ray/v2ray-openbsd-$BIT.zip"
 
@@ -352,7 +352,6 @@ main() {
     [[ "$CHECK" -eq '1' ]] && checkUpdate && return
     [[ "$REMOVE" -eq '1' ]] && remove && return
 
-    ARCH="$(arch -s)"
     # extract local file
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
         echo 'error: Installing V2Ray from a local file. Please make sure the file is valid because we cannot determine it.'
@@ -371,6 +370,7 @@ main() {
         elif [[ "$RETVAL" -eq '3' ]]; then
             return 3
         else
+            ARCH="$(arch -s)"
             echo "info: Installing V2Ray $NEW_VER for $ARCH"
             downloadV2Ray || return "$?"
             installSoftware unzip || return "$?"
