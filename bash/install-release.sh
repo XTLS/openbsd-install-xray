@@ -337,6 +337,7 @@ main() {
         getVersion
         if [[ "$?" -eq '0' ]] && [[ "$FORCE" -ne '1' ]]; then
             echo "info: The latest version $CUR_VER is installed."
+            exit 0
         else
             echo "info: Installing V2Ray $NEW_VER for $(arch -s)"
             downloadV2Ray
