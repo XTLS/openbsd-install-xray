@@ -9,10 +9,7 @@
 # 2: Application error
 # 3: Network error
 
-# CLI arguments
-DIST_SRC='github'
-VSRC_ROOT='/tmp/v2ray'
-
+# Judge Computer Architecture
 architecture() {
     case "$(arch -s)" in
         i686 | i386)
@@ -30,9 +27,10 @@ architecture() {
 }
 BIT="$(architecture)"
 
-ZIPFILE="/tmp/v2ray/v2ray-openbsd-$BIT.zip"
-
+DIST_SRC='github'
 RCCTL_CMD="$(command -v rcctl 2>/dev/null)"
+VSRC_ROOT='/tmp/v2ray'
+ZIPFILE="/tmp/v2ray/v2ray-openbsd-$BIT.zip"
 
 ###########################
 while [[ "$#" -gt 0 ]]; do
@@ -221,9 +219,9 @@ startV2Ray() {
 installFile() {
     NAME="$1"
     if [[ "$NAME" == 'v2ray' ]] || [[ "$NAME" == 'v2ctl' ]]; then
-        "$(install -m 755 -g bin $VSRC_ROOT/$NAME /usr/local/bin/$NAME)"
+        install -m 755 -g bin "$VSRC_ROOT/$NAME" "/usr/local/bin/$NAME
     elif [[ "$NAME" == 'geoip.dat' ]] || [[ "$NAME" == 'geosite.dat' ]]; then
-        "$(install -m 755 -g bin $VSRC_ROOT/$NAME /usr/local/lib/v2ray/$NAME)"
+        install -m 755 -g bin "$VSRC_ROOT/$NAME" "/usr/local/lib/v2ray/$NAME
     fi
     return 0
 }
