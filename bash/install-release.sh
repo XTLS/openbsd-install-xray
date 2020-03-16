@@ -78,7 +78,8 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         *)
             # unknown option
-            echo '$0: unknown option -- -'
+            echo "$0: unknown option -- -"
+            exit 1
             ;;
     esac
     shift # past argument or value
