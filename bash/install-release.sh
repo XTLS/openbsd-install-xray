@@ -200,7 +200,7 @@ getVersion() {
         NEW_VER="$(normalizeVersion $VERSION)"
         return 4
     else
-        VER="$(/usr/bin/v2ray/v2ray -version 2> /dev/null)"
+        VER="$(/usr/local/bin/v2ray -version 2> /dev/null)"
         RETVAL="$?"
         CUR_VER="$(normalizeVersion $(echo $VER | head -n 1 | cut -d ' ' -f2))"
         TAG_URL='https://api.github.com/repos/v2ray/v2ray-core/releases/latest'
