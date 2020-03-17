@@ -107,7 +107,6 @@ installSoftware() {
     fi
 }
 versionNumber() {
-    if [[ -n "$1" ]]; then
         case "$1" in
             v*)
                 echo "$1"
@@ -116,36 +115,47 @@ versionNumber() {
                 echo "v$1"
                 ;;
         esac
-    fi
 }
 getVersion() {
-    # 0: no. 1: new V2Ray. 2: not installed. 3: check failed. 4: don't check.
-    if [[ -n "$VERSION" ]]; then
-        NEW_VER="$(versionNumber $VERSION)"
-        return 4
-    else
+    # 0: no. 1: new V2Ray. 2: check failed. 3: don't check.
+    if [[ -z "$VERSION" ]]; then
         VER="$(/usr/local/bin/v2ray -version 2> /dev/null)"
-        RETVAL="$?"
-        CUR_VER="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f2))"
-        TAG_URL='https://api.github.com/repos/v2ray/v2ray-core/releases/latest'
-        NEW_VER="$(versionNumber $(curl $PROXY $TAG_URL --connect-timeout 10 -s | grep 'tag_name' | cut -d \" -f 4))"
-        if [[ "$?" -ne '0' ]] || [[ "$NEW_VER" == '' ]]; then
-            echo 'error: Failed to get release information, please check your network.'
-            return 3
-        elif [[ "$RETVAL" -ne '0' ]];then
-            return 2
-        elif [[ "$NEW_VER" != "$CUR_VER" ]]; then
-            IF_VER="$(echo "$NEW_VER $CUR_VER" | awk '{ if ( $1 > $2 ) print $1; else print $2 }')"
-            if [[ "$IF_VER" == "$NEW_VER" ]]; then
+        CURRENT_VERSION="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f2))"
+        NEW_VERSION="$(versionNumber $(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s | grep 'tag_name' | cut -d \" -f 4))"
+        if [[ "$NEW_VERSION" == "$CURRENT_VERSION" ]]; then
+            return 0
+        elif [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
+            NEW_VERSIONSION_NUMBER="${NEW_VERSION#v}"
+            NEW_MAJOR_VERSION_NUMBER="${NEW_VERSIONSION_NUMBER%%.*}"
+            NEW_MINOR_VERSION_NUMBER="$(echo $NEW_VERSIONSION_NUMBER | awk -F '.' '{print $2}')"
+            NEW_MINIMUM_VERSION_NUMBER="${NEW_VERSIONSION_NUMBER##*.}"
+            CURRENT_VERSIONSION_NUMBER="$(echo ${CURRENT_VERSION#v} | sed 's/-.*//')"
+            CURRENT_MAJOR_VERSION_NUMBER="${CURRENT_VERSIONSION_NUMBER%%.*}"
+            CURRENT_MINOR_VERSION_NUMBER="$(echo $CURRENT_VERSIONSION_NUMBER | awk -F '.' '{print $2}')"
+            CURRENT_MINIMUM_VERSION_NUMBER="${CURRENT_VERSIONSION_NUMBER##*.}"
+            if [[ "$NEW_MAJOR_VERSION_NUMBER" -gt "$CURRENT_MAJOR_VERSION_NUMBER" ]]; then
                 return 1
+            elif [[ "$NEW_MAJOR_VERSION_NUMBER" -eq "$CURRENT_MAJOR_VERSION_NUMBER" ]]; then
+                if [[ "$NEW_MINOR_VERSION_NUMBER" -gt "$CURRENT_MINOR_VERSION_NUMBER" ]]; then
+                    return 1
+                elif [[ "$NEW_MINOR_VERSION_NUMBER" -eq "$CURRENT_MINOR_VERSION_NUMBER" ]]; then
+                    if [[ "$NEW_MINIMUM_VERSION_NUMBER" -gt "$CURRENT_MINIMUM_VERSION_NUMBER" ]]; then
+                        return 1
+                    fi
+                fi
             fi
+        elif [[ "$?" -ne '0' ]]; then
+            echo 'error: Failed to get release information, please check your network.'
+            return 2
         fi
-        return 0
+    else
+        NEW_VERSION="$(versionNumber $VERSION)"
+        return 3
     fi
 }
 downloadV2Ray() {
     mkdir -p "$TMP_DIRECTORY"
-    DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VER/v2ray-openbsd-$BIT.zip"
+    DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VERSION/v2ray-openbsd-$BIT.zip"
     echo "info: Downloading V2Ray: $DOWNLOAD_LINK"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK" -#
     if [[ "$?" -ne '0' ]]; then
@@ -310,12 +320,12 @@ remove() {
 checkUpdate() {
     getVersion
     if [[ "$?" -eq '0' ]]; then
-        echo "info: No new version. The current version is the latest release $NEW_VER."
+        echo "info: No new version. The current version is the latest release $NEW_VERSION."
     elif [[ "$?" -eq '1' ]]; then
-        echo "info: Found the latest release of V2Ray $NEW_VER. (Current release: $CUR_VER)"
-    elif [[ "$?" -eq '2' ]]; then
+        echo "info: Found the latest release of V2Ray $NEW_VERSION. (Current release: $CURRENT_VERSION)"
+    else
         echo 'error: V2Ray is not installed.'
-        echo "info: The latest release of V2Ray is $NEW_VER."
+        echo "info: The latest release of V2Ray is $NEW_VERSION."
     fi
     exit 0
 }
@@ -330,7 +340,7 @@ main() {
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
         echo -n 'warn: Installing V2Ray from a local file. Please make sure the file is valid because we cannot determine it. (Press any key) ...'
         read
-        NEW_VER='local'
+        NEW_VERSION='local'
         installSoftware unzip
         rm -rf "$TMP_DIRECTORY"
         decompression "$LOCAL"
@@ -339,10 +349,10 @@ main() {
         installSoftware curl
         getVersion
         if [[ "$?" -eq '0' ]] && [[ "$FORCE" -ne '1' ]]; then
-            echo "info: The latest version $CUR_VER is installed."
+            echo "info: The latest version $CURRENT_VERSION is installed."
             exit 0
         else
-            echo "info: Installing V2Ray $NEW_VER for $(arch -s)"
+            echo "info: Installing V2Ray $NEW_VERSION for $(arch -s)"
             rm -rf "$TMP_DIRECTORY"
             downloadV2Ray
             if [[ "$?" -eq '1' ]]; then
@@ -374,7 +384,7 @@ main() {
     if [[ "$V2RAY_RUNNING" == 'true' ]]; then
         startV2Ray
     fi
-    echo "info: V2Ray $NEW_VER is installed."
+    echo "info: V2Ray $NEW_VERSION is installed."
 }
 
 main
