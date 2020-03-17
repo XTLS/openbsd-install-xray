@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This file is accessible as https://raw.githubusercontent.com/v2fly/openbsd-install-v2ray/master/bash/install-release.sh
-# Original source is located at github.com/v2ray/v2ray-core/release/install-release.sh
+# Original source is located at github.com/v2fly/openbsd-install-v2ray/bash/install-release.sh
 
 # If not specify, default meaning of return value:
 # 0: Success
@@ -174,7 +174,7 @@ getVersion() {
             exit 1
         fi
         RELEASE_LATEST="$(printf $RELEASE_LATEST | grep 'tag_name' | cut -d '"' -f 4)"
-        NEW_VERSION="$(versionNumber $RELEASE_LIST)"
+        NEW_VERSION="$(versionNumber $RELEASE_LATEST)"
         if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
             NEW_VERSIONSION_NUMBER="${NEW_VERSION#v}"
             NEW_MAJOR_VERSION_NUMBER="${NEW_VERSIONSION_NUMBER%%.*}"
@@ -364,7 +364,8 @@ removeV2Ray() {
             echo 'removed: /usr/local/bin/v2ctl'
             echo 'removed: /usr/local/lib/v2ray'
             echo 'removed: /etc/rc.d/v2ray'
-            echo 'info: Please execute the command: rcctl disable v2ray'
+            echo 'Please execute the command: rcctl disable v2ray'
+            echo 'Dependent software you may need to remove manually: pkg_del -c curl unzip'
             echo 'info: V2Ray has been removed.'
             echo 'info: If necessary, manually delete the configuration and log files.'
             echo 'info: e.g., /etc/v2ray and /var/log/v2ray...'
@@ -440,6 +441,7 @@ main() {
     echo 'installed: /var/log/v2ray'
     echo 'installed: /etc/rc.d/v2ray'
     echo 'Please execute the command: rcctl enable v2ray'
+    echo 'Dependent software you may need to remove manually: pkg_del -c curl unzip'
     rm -r "$TMP_DIRECTORY"
     echo "removed: $TMP_DIRECTORY"
     if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
