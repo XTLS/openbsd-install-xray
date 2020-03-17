@@ -356,7 +356,7 @@ main() {
         # download via network and decompression
         installSoftware curl
         getVersion
-        if [[ "$?" -eq '0' ]] || [[ "$FORCE" -eq '1' ]]; then
+        if [[ "$?" -eq '0' ]] || [[ "$FORCE" -eq '1' ]] || [[ "$?" -eq 2 ]]; then
             echo "info: Installing V2Ray $NEW_VERSION for $(arch -s)"
             rm -rf "$TMP_DIRECTORY"
             downloadV2Ray
