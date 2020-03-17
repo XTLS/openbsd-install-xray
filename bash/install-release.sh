@@ -83,10 +83,24 @@ if [[ "$#" -gt '0' ]]; then
             LOCAL_INSTALL='1'
             ;;
         -p | --proxy)
-            if [[ "$#" -gt '2' ]] || [[ -z "$2" ]]; then
-                echo 'error: Please specify the correct proxy server address.'
-                exit 1
-            fi
+            case "$2" in
+                http://*)
+                    ;;
+                https://*)
+                    ;;
+                socks4://*)
+                    ;;
+                socks4a://*)
+                    ;;
+                socks5://*)
+                    ;;
+                socks5h://*)
+                    ;;
+                *)
+                    echo 'error: Please specify the correct proxy server address.'
+                    exit 1
+                    ;;
+            esac
             PROXY="-x $2"
             case "$3" in
                 --version)
