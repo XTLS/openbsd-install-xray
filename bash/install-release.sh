@@ -10,26 +10,31 @@
 # 3: Network error
 
 # Judge computer systems and architecture
-case "$(arch 2> /dev/null)" in
-    OpenBSD*)
-        case "$(uname -m)" in
-            i686 | i386)
-                BIT='32'
-                ;;
-            x86_64 | amd64)
-                BIT='64'
-                ;;
-            *)
-                echo "error: The architecture is not supported."
-                exit 1
-                ;;
-        esac
-        ;;
-    *)
-        echo "error: This operating system is not supported."
-        exit 1
-        ;;
-esac
+if [[ -f /usr/bin/arch ]]; then
+    case "$(arch)" in
+        OpenBSD*)
+            case "$(uname -m)" in
+                i686 | i386)
+                    BIT='32'
+                    ;;
+                x86_64 | amd64)
+                    BIT='64'
+                    ;;
+                *)
+                    echo "error: The architecture is not supported."
+                    exit 1
+                    ;;
+            esac
+            ;;
+        *)
+            echo "error: This operating system is not supported."
+            exit 1
+            ;;
+    esac
+else
+    echo "error: This operating system is not supported."
+    exit 1
+fi
 
 # Judgment parameters
 if [[ "$#" -gt '0' ]]; then
@@ -144,6 +149,10 @@ getVersion() {
         if [[ -f '/usr/local/bin/v2ray' ]]; then
             VER="$(/usr/local/bin/v2ray -version)"
             CURRENT_VERSION="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f2))"
+            if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
+                NEW_VERSION="$CURRENT_VERSION"
+                shift
+            fi
         fi
         NEW_VERSION="$(versionNumber $(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s | grep 'tag_name' | cut -d \" -f 4))"
         if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
@@ -192,6 +201,7 @@ downloadV2Ray() {
         echo 'error: Download failed! Please check your network or try again.'
         return 1
     fi
+    echo "info: Downloading V2Ray verification file: $DOWNLOAD_LINK.dgst"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE.dgst" "$DOWNLOAD_LINK.dgst" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
@@ -214,7 +224,7 @@ decompression(){
     unzip -q "$1" -d "$TMP_DIRECTORY"
     if [[ "$?" -ne '0' ]]; then
         echo 'error: V2Ray decompression failed.'
-        rm -rf "$TMP_DIRECTORY"
+        rm -r "$TMP_DIRECTORY"
         echo "removed: $TMP_DIRECTORY"
         exit 1
     fi
@@ -328,7 +338,7 @@ removeV2Ray() {
             stopV2Ray
         fi
         NAME="$1"
-        rm -rf /usr/local/bin/{v2ray,v2ctl} /usr/local/lib/v2ray /etc/rc.d/v2ray
+        rm -r /usr/local/bin/{v2ray,v2ctl} /usr/local/lib/v2ray /etc/rc.d/v2ray
         if [[ "$?" -ne '0' ]]; then
             echo 'error: Failed to remove V2Ray.'
             exit 1
@@ -351,9 +361,9 @@ removeV2Ray() {
 
 showHelp() {
     echo "usage: $0 [--remove | --version number | -c | -f | -h | -l | -p]"
-    echo '          [-p address] [--version number | -c | -f]'
+    echo '  [-p address] [--version number | -c | -f]'
     echo '  --remove        Remove V2Ray'
-    echo '  --version       Install the specified version of V2Ray, e.g., --version v3.15'
+    echo '  --version       Install the specified version of V2Ray, e.g., --version v4.18.0'
     echo '  -c, --check     Check if V2Ray can be updated'
     echo '  -f, --force     Force installation of the latest version of V2Ray'
     echo '  -h, --help      Show help'
@@ -371,16 +381,15 @@ main() {
     TMP_DIRECTORY="$(mktemp -du)"
     ZIP_FILE="$TMP_DIRECTORY/v2ray-openbsd-$BIT.zip"
 
-    # decompression local file
+    # Install V2Ray from a local file, but still need to make sure the network is available
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
-        echo -n 'warn: Installing V2Ray from a local file. Please make sure the file is valid because we cannot determine it. (Press any key) ...'
+        echo -n 'warn: Install V2Ray from a local file, but still need to make sure the network is available. Please make sure the file is valid because we cannot confirm it. (Press any key) ...'
         read
-        NEW_VERSION='local'
         installSoftware unzip
         mkdir "$TMP_DIRECTORY"
         decompression "$LOCAL_FILE"
     else
-        # download via network and decompression
+        # Normal way
         installSoftware curl
         getVersion
         NUMBER="$?"
@@ -388,7 +397,7 @@ main() {
             echo "info: Installing V2Ray $NEW_VERSION for $(arch -s)"
             downloadV2Ray
             if [[ "$?" -eq '1' ]]; then
-                rm -rf "$TMP_DIRECTORY"
+                rm -r "$TMP_DIRECTORY"
                 echo "removed: $TMP_DIRECTORY"
                 exit 0
             fi
@@ -414,10 +423,13 @@ main() {
     echo 'installed: /var/log/v2ray'
     echo 'installed: /etc/rc.d/v2ray'
     echo 'Please execute the command: rcctl enable v2ray'
-    rm -rf "$TMP_DIRECTORY"
+    rm -r "$TMP_DIRECTORY"
     echo "removed: $TMP_DIRECTORY"
     if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
         startV2Ray
+    fi
+    if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
+        getVersion
     fi
     echo "info: V2Ray $NEW_VERSION is installed."
 }
