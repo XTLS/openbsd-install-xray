@@ -341,7 +341,7 @@ main() {
     [[ "$CHECK" -eq '1' ]] && checkUpdate
     [[ "$REMOVE" -eq '1' ]] && remove
 
-    TMP_DIRECTORY="$(mktemp -d)"
+    TMP_DIRECTORY="$(mktemp -du)"
     ZIP_FILE="$TMP_DIRECTORY/v2ray-openbsd-$BIT.zip"
 
     # decompression local file
@@ -350,7 +350,6 @@ main() {
         read
         NEW_VERSION='local'
         installSoftware unzip
-        rm -rf "$TMP_DIRECTORY"
         decompression "$LOCAL"
     else
         # download via network and decompression
@@ -359,10 +358,8 @@ main() {
         NUMBER="$?"
         if [[ "$NUMBER" -eq '0' ]] || [[ "$FORCE" -eq '1' ]] || [[ "$NUMBER" -eq 2 ]]; then
             echo "info: Installing V2Ray $NEW_VERSION for $(arch -s)"
-            rm -rf "$TMP_DIRECTORY"
             downloadV2Ray
             if [[ "$?" -eq '1' ]]; then
-                rm -rf "$TMP_DIRECTORY"
                 echo "removed: $TMP_DIRECTORY"
                 exit 0
             fi
