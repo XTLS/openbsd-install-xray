@@ -32,7 +32,7 @@ case "$(arch 2> /dev/null)" in
 esac
 
 # Judgment parameters
-while [[ "$#" -gt '0' ]]; do
+if [[ "$#" -gt '0' ]]; then
     case "$1" in
         --remove)
             if [[ "$#" -gt '1' ]]; then
@@ -89,8 +89,7 @@ while [[ "$#" -gt '0' ]]; do
             exit 1
             ;;
     esac
-    shift
-done
+fi
 
 VSRC_ROOT='/tmp/v2ray'
 ZIP_FILE="/tmp/v2ray/v2ray-openbsd-$BIT.zip"
