@@ -168,7 +168,7 @@ getVersion() {
                 return
             fi
         fi
-        RELEASE_LIST="$(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s | grep 'tag_name' | cut -d '"' -f 4)"
+        RELEASE_LIST="$(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s && | grep 'tag_name' | cut -d '"' -f 4)"
         if [[ "$?" -ne '0' ]]; then
             echo 'error: Failed to get release list, please check your network.'
             exit 1
