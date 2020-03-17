@@ -169,7 +169,10 @@ getVersion() {
             fi
         fi
         NEW_VERSION="$(versionNumber $(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s | grep 'tag_name' | cut -d \" -f 4))"
-        if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
+        if [[ "$?" -ne '0' ]]; then
+            echo 'error: Failed to get release information, please check your network.'
+            exit 1
+        elif [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
             NEW_VERSIONSION_NUMBER="${NEW_VERSION#v}"
             NEW_MAJOR_VERSION_NUMBER="${NEW_VERSIONSION_NUMBER%%.*}"
             NEW_MINOR_VERSION_NUMBER="$(echo $NEW_VERSIONSION_NUMBER | awk -F '.' '{print $2}')"
@@ -197,9 +200,6 @@ getVersion() {
             fi
         elif [[ "$NEW_VERSION" == "$CURRENT_VERSION" ]]; then
             return 1
-        elif [[ "$?" -ne '0' ]]; then
-            echo 'error: Failed to get release information, please check your network.'
-            exit 0
         fi
     else
         NEW_VERSION="$(versionNumber $VERSION)"
