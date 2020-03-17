@@ -74,7 +74,7 @@ if [[ "$#" -gt '0' ]]; then
                 echo 'error: Please specify the correct local file.'
                 exit 1
             fi
-            LOCAL="$2"
+            LOCAL_FILE="$2"
             LOCAL_INSTALL='1'
             ;;
         -p | --proxy)
@@ -83,6 +83,29 @@ if [[ "$#" -gt '0' ]]; then
                 exit 1
             fi
             PROXY="-x $2"
+            case "$3" in
+                --version)
+                    if [[ "$#" -gt '4' ]] || [[ -z "$4" ]]; then
+                        echo 'error: Please specify the correct version.'
+                        exit 1
+                    fi
+                    VERSION="$2"
+                    ;;
+                -c | --check)
+                    if [[ "$#" -gt '3' ]]; then
+                        echo 'error: Please enter the correct command.'
+                        exit 1
+                    fi
+                    CHECK='1'
+                    ;;
+                -f | --force)
+                    if [[ "$#" -gt '3' ]]; then
+                        echo 'error: Please enter the correct command.'
+                        exit 1
+                    fi
+                    FORCE='1'
+                    ;;
+            esac
             ;;
         *)
             echo "$0: unknown option -- -"
@@ -96,12 +119,12 @@ installSoftware() {
     if [[ -n "$(command -v $COMPONENT)" ]]; then
         return
     fi
-    echo "info: Installing $COMPONENT"
     pkg_add "$COMPONENT--"
     if [[ "$?" -ne '0' ]]; then
         echo "error: Installation of $COMPONENT failed, please check your network."
         exit 1
     fi
+    echo "info: $COMPONENT is installed."
 }
 versionNumber() {
     case "$1" in
@@ -114,10 +137,14 @@ versionNumber() {
     esac
 }
 getVersion() {
-    # 0: new V2Ray. 1: no. 2: don't check.
+    # 0: Install or update V2Ray.
+    # 1: Installed or no new version of V2Ray.
+    # 2: Install the specified version of V2Ray.
     if [[ -z "$VERSION" ]]; then
-        VER="$(/usr/local/bin/v2ray -version 2> /dev/null)"
-        CURRENT_VERSION="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f2))"
+        if [[ -f '/usr/local/bin/v2ray' ]]; then
+            VER="$(/usr/local/bin/v2ray -version)"
+            CURRENT_VERSION="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f2))"
+        fi
         NEW_VERSION="$(versionNumber $(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s | grep 'tag_name' | cut -d \" -f 4))"
         if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
             NEW_VERSIONSION_NUMBER="${NEW_VERSION#v}"
@@ -157,7 +184,7 @@ getVersion() {
     fi
 }
 downloadV2Ray() {
-    mkdir -p "$TMP_DIRECTORY"
+    mkdir "$TMP_DIRECTORY"
     DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VERSION/v2ray-openbsd-$BIT.zip"
     echo "info: Downloading V2Ray: $DOWNLOAD_LINK"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK" -#
@@ -184,7 +211,6 @@ downloadV2Ray() {
     done
 }
 decompression(){
-    mkdir -p "$TMP_DIRECTORY"
     unzip -q "$1" -d "$TMP_DIRECTORY"
     if [[ "$?" -ne '0' ]]; then
         echo 'error: V2Ray decompression failed.'
@@ -281,19 +307,22 @@ stopV2Ray() {
     return 0
 }
 
-showHelp() {
-    echo "usage: $0 [--remove] [--version] [-cfhlp]"
-    echo '  --remove        Remove V2Ray'
-    echo '  --version       Install the specified version, e.g., --version v3.15'
-    echo '  -c, --check     Check for updates'
-    echo '  -f, --force     Force installation'
-    echo '  -h, --help      Show help'
-    echo '  -l, --local     Install from local files'
-    echo '  -p, --proxy     Download through a proxy server, e.g., -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:8118'
-    exit 0
+checkUpdate() {
+    if [[ -f '/etc/rc.d/v2ray' ]]; then
+        getVersion
+        if [[ "$?" -eq '0' ]]; then
+            echo "info: Found the latest release of V2Ray $NEW_VERSION. (Current release: $CURRENT_VERSION)"
+        elif [[ "$?" -eq '1' ]]; then
+            echo "info: No new version. The current version is the latest release $NEW_VERSION."
+        fi
+        exit 0
+    else
+        echo 'error: V2Ray is not installed.'
+        exit 1
+    fi
 }
 
-remove() {
+removeV2Ray() {
     if [[ -f '/etc/rc.d/v2ray' ]]; then
         if [[ -n "$(pgrep v2ray)" ]]; then
             stopV2Ray
@@ -320,26 +349,24 @@ remove() {
     fi
 }
 
-checkUpdate() {
-    if [[ -f '/etc/rc.d/v2ray' ]]; then
-        getVersion
-        if [[ "$?" -eq '0' ]]; then
-            echo "info: Found the latest release of V2Ray $NEW_VERSION. (Current release: $CURRENT_VERSION)"
-        elif [[ "$?" -eq '1' ]]; then
-            echo "info: No new version. The current version is the latest release $NEW_VERSION."
-        fi
-        exit 0
-    else
-        echo 'error: V2Ray is not installed.'
-        exit 1
-    fi
+showHelp() {
+    echo "usage: $0 [--remove | --version number | -c | -f | -h | -l | -p]"
+    echo '          [-p address] [--version number | -c | -f]'
+    echo '  --remove        Remove V2Ray'
+    echo '  --version       Install the specified version of V2Ray, e.g., --version v3.15'
+    echo '  -c, --check     Check if V2Ray can be updated'
+    echo '  -f, --force     Force installation of the latest version of V2Ray'
+    echo '  -h, --help      Show help'
+    echo '  -l, --local     Install V2Ray from a local file'
+    echo '  -p, --proxy     Download through a proxy server, e.g., -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:8118'
+    exit 0
 }
 
 main() {
     # helping information
     [[ "$HELP" -eq '1' ]] && showHelp
     [[ "$CHECK" -eq '1' ]] && checkUpdate
-    [[ "$REMOVE" -eq '1' ]] && remove
+    [[ "$REMOVE" -eq '1' ]] && removeV2Ray
 
     TMP_DIRECTORY="$(mktemp -du)"
     ZIP_FILE="$TMP_DIRECTORY/v2ray-openbsd-$BIT.zip"
@@ -350,7 +377,8 @@ main() {
         read
         NEW_VERSION='local'
         installSoftware unzip
-        decompression "$LOCAL"
+        mkdir "$TMP_DIRECTORY"
+        decompression "$LOCAL_FILE"
     else
         # download via network and decompression
         installSoftware curl
@@ -360,6 +388,7 @@ main() {
             echo "info: Installing V2Ray $NEW_VERSION for $(arch -s)"
             downloadV2Ray
             if [[ "$?" -eq '1' ]]; then
+                rm -rf "$TMP_DIRECTORY"
                 echo "removed: $TMP_DIRECTORY"
                 exit 0
             fi
@@ -372,7 +401,7 @@ main() {
     fi
 
     if [[ -n "$(pgrep v2ray)" ]]; then
-        V2RAY_RUNNING='true'
+        V2RAY_RUNNING='1'
         stopV2Ray
     fi
     installV2Ray
@@ -387,7 +416,7 @@ main() {
     echo 'Please execute the command: rcctl enable v2ray'
     rm -rf "$TMP_DIRECTORY"
     echo "removed: $TMP_DIRECTORY"
-    if [[ "$V2RAY_RUNNING" == 'true' ]]; then
+    if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
         startV2Ray
     fi
     echo "info: V2Ray $NEW_VERSION is installed."
