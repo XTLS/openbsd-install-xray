@@ -166,23 +166,23 @@ downloadV2Ray() {
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
-        shift 1
+        return 1
     fi
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE.dgst" "$DOWNLOAD_LINK.dgst" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
-        shift 1
+        return 1
     fi
     if [[ "$(cat $ZIP_FILE.dgst)" == 'Not Found' ]]; then
         echo 'error: This version does not support verification. Please replace with another version.'
-        shift 1
+        return 1
     fi
     for LISTSUM in 'md5' 'sha1' 'sha256' 'sha512'; do
         SUM="$($LISTSUM $ZIP_FILE | sed 's/.* //')"
         CHECKSUM="$(grep ${LISTSUM^^} $ZIP_FILE.dgst | sed 's/.* //')"
         if [[ "$SUM" != "$CHECKSUM" ]]; then
             echo 'error: Check failed! Please check your network or try again.'
-            shift 1
+            return 1
         fi
     done
 }
