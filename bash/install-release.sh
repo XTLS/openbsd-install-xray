@@ -91,9 +91,6 @@ if [[ "$#" -gt '0' ]]; then
     esac
 fi
 
-TMP_DIRECTORY="$(mktemp -d)"
-ZIP_FILE="$TMP_DIRECTORY/v2ray-openbsd-$BIT.zip"
-
 installSoftware() {
     COMPONENT="$1"
     if [[ -n "$(command -v $COMPONENT)" ]]; then
@@ -343,6 +340,9 @@ main() {
     [[ "$HELP" -eq '1' ]] && showHelp
     [[ "$CHECK" -eq '1' ]] && checkUpdate
     [[ "$REMOVE" -eq '1' ]] && remove
+
+    TMP_DIRECTORY="$(mktemp -d)"
+    ZIP_FILE="$TMP_DIRECTORY/v2ray-openbsd-$BIT.zip"
 
     # decompression local file
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
