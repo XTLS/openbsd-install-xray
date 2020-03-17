@@ -356,7 +356,8 @@ main() {
         # download via network and decompression
         installSoftware curl
         getVersion
-        if [[ "$?" -eq '0' ]] || [[ "$FORCE" -eq '1' ]] || [[ "$?" -eq 2 ]]; then
+        NUMBER="$?"
+        if [[ "$NUMBER" -eq '0' ]] || [[ "$FORCE" -eq '1' ]] || [[ "$NUMBER" -eq 2 ]]; then
             echo "info: Installing V2Ray $NEW_VERSION for $(arch -s)"
             rm -rf "$TMP_DIRECTORY"
             downloadV2Ray
@@ -367,7 +368,7 @@ main() {
             fi
             installSoftware unzip
             decompression "$ZIP_FILE"
-        elif [[ "$?" -eq '1' ]] && [[ "$FORCE" -ne '1' ]]; then
+        elif [[ "$NUMBER" -eq '1' ]]; then
             echo "info: The latest version $CURRENT_VERSION is installed."
             exit 0
         fi
