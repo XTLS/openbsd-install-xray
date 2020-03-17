@@ -341,9 +341,9 @@ checkUpdate() {
     if [[ -f '/etc/rc.d/v2ray' ]]; then
         getVersion
         if [[ "$?" -eq '0' ]]; then
-            echo "info: Found the latest release of V2Ray $NEW_VERSION. (Current release: $CURRENT_VERSION)"
+            echo "info: Found the latest release of V2Ray $NEW_VERSION . (Current release: $CURRENT_VERSION)"
         elif [[ "$?" -eq '1' ]]; then
-            echo "info: No new version. The current version is the latest release $NEW_VERSION."
+            echo "info: No new version. The current version is the latest release $NEW_VERSION ."
         fi
         exit 0
     else
