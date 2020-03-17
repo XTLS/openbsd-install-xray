@@ -162,7 +162,7 @@ getVersion() {
     if [[ -z "$VERSION" ]]; then
         if [[ -f '/usr/local/bin/v2ray' ]]; then
             VERSION="$(/usr/local/bin/v2ray -version)"
-            CURRENT_VERSION="$(versionNumber $(echo $VERSION | head -n 1 | cut -d ' ' -f 2))"
+            CURRENT_VERSION="$(versionNumber $(echo $VERSION | head -n 1 | awk -F ' ' '{print $2}'))"
             if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
                 NEW_VERSION="$CURRENT_VERSION"
                 return
@@ -175,7 +175,7 @@ getVersion() {
             echo 'error: Failed to get release list, please check your network.'
             exit 1
         fi
-        RELEASE_LATEST="$(cat $TMP_FILE | grep 'tag_name' | cut -d '"' -f 4)"
+        RELEASE_LATEST="$(cat $TMP_FILE | grep 'tag_name' | awk -F '"' '{print $4}')"
         rm "$TMP_FILE"
         NEW_VERSION="$(versionNumber $RELEASE_LATEST)"
         if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
@@ -368,10 +368,10 @@ removeV2Ray() {
             echo 'removed: /usr/local/lib/v2ray'
             echo 'removed: /etc/rc.d/v2ray'
             echo 'Please execute the command: rcctl disable v2ray'
-            echo 'Dependent software you may need to remove manually: pkg_del -c curl unzip'
+            echo 'You may need to execute a command to remove dependent software: pkg_del -c curl unzip'
             echo 'info: V2Ray has been removed.'
             echo 'info: If necessary, manually delete the configuration and log files.'
-            echo 'info: e.g., /etc/v2ray and /var/log/v2ray...'
+            echo 'info: e.g., /etc/v2ray and /var/log/v2ray ...'
             exit 0
         fi
     else
@@ -444,7 +444,7 @@ main() {
     echo 'installed: /var/log/v2ray'
     echo 'installed: /etc/rc.d/v2ray'
     echo 'Please execute the command: rcctl enable v2ray'
-    echo 'Dependent software you may need to remove manually: pkg_del -c curl unzip'
+    echo 'You may need to execute a command to remove dependent software: pkg_del -c curl unzip'
     rm -r "$TMP_DIRECTORY"
     echo "removed: $TMP_DIRECTORY"
     if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
