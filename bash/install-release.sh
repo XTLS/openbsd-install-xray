@@ -168,12 +168,12 @@ getVersion() {
                 return
             fi
         fi
-        RELEASE_LIST="$(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10)"
+        RELEASE_LATEST="$(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s)"
         if [[ "$?" -ne '0' ]]; then
             echo 'error: Failed to get release list, please check your network.'
             exit 1
         fi
-        RELEASE_LIST="$(printf $RELEASE_LIST | grep 'tag_name' | cut -d '"' -f 4)"
+        RELEASE_LATEST="$(printf $RELEASE_LATEST | grep 'tag_name' | cut -d '"' -f 4)"
         NEW_VERSION="$(versionNumber $RELEASE_LIST)"
         if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
             NEW_VERSIONSION_NUMBER="${NEW_VERSION#v}"
@@ -212,13 +212,13 @@ getVersion() {
 downloadV2Ray() {
     mkdir "$TMP_DIRECTORY"
     DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VERSION/v2ray-openbsd-$BIT.zip"
-    echo "info: Downloading V2Ray: $DOWNLOAD_LINK"
+    echo "Downloading V2Ray: $DOWNLOAD_LINK"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
         return 1
     fi
-    echo "info: Downloading V2Ray verification file: $DOWNLOAD_LINK.dgst"
+    echo "Downloading V2Ray verification file: $DOWNLOAD_LINK.dgst"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE.dgst" "$DOWNLOAD_LINK.dgst" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
