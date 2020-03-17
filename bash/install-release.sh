@@ -107,24 +107,22 @@ installSoftware() {
     fi
 }
 versionNumber() {
-        case "$1" in
-            v*)
-                echo "$1"
-                ;;
-            *)
-                echo "v$1"
-                ;;
-        esac
+    case "$1" in
+        v*)
+            echo "$1"
+            ;;
+        *)
+            echo "v$1"
+            ;;
+    esac
 }
 getVersion() {
-    # 0: no. 1: new V2Ray. 2: check failed. 3: don't check.
+    # 0: new V2Ray. 1: no. 2: don't check.
     if [[ -z "$VERSION" ]]; then
         VER="$(/usr/local/bin/v2ray -version 2> /dev/null)"
         CURRENT_VERSION="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f2))"
         NEW_VERSION="$(versionNumber $(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s | grep 'tag_name' | cut -d \" -f 4))"
-        if [[ "$NEW_VERSION" == "$CURRENT_VERSION" ]]; then
-            return 0
-        elif [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
+        if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
             NEW_VERSIONSION_NUMBER="${NEW_VERSION#v}"
             NEW_MAJOR_VERSION_NUMBER="${NEW_VERSIONSION_NUMBER%%.*}"
             NEW_MINOR_VERSION_NUMBER="$(echo $NEW_VERSIONSION_NUMBER | awk -F '.' '{print $2}')"
@@ -134,23 +132,31 @@ getVersion() {
             CURRENT_MINOR_VERSION_NUMBER="$(echo $CURRENT_VERSIONSION_NUMBER | awk -F '.' '{print $2}')"
             CURRENT_MINIMUM_VERSION_NUMBER="${CURRENT_VERSIONSION_NUMBER##*.}"
             if [[ "$NEW_MAJOR_VERSION_NUMBER" -gt "$CURRENT_MAJOR_VERSION_NUMBER" ]]; then
-                return 1
+                return 0
             elif [[ "$NEW_MAJOR_VERSION_NUMBER" -eq "$CURRENT_MAJOR_VERSION_NUMBER" ]]; then
                 if [[ "$NEW_MINOR_VERSION_NUMBER" -gt "$CURRENT_MINOR_VERSION_NUMBER" ]]; then
-                    return 1
+                    return 0
                 elif [[ "$NEW_MINOR_VERSION_NUMBER" -eq "$CURRENT_MINOR_VERSION_NUMBER" ]]; then
                     if [[ "$NEW_MINIMUM_VERSION_NUMBER" -gt "$CURRENT_MINIMUM_VERSION_NUMBER" ]]; then
+                        return 0
+                    else
                         return 1
                     fi
+                else
+                    return 1
                 fi
+            else
+                return 1
             fi
+        elif [[ "$NEW_VERSION" == "$CURRENT_VERSION" ]]; then
+            return 1
         elif [[ "$?" -ne '0' ]]; then
             echo 'error: Failed to get release information, please check your network.'
-            return 2
+            exit 0
         fi
     else
         NEW_VERSION="$(versionNumber $VERSION)"
-        return 3
+        return 2
     fi
 }
 downloadV2Ray() {
@@ -320,9 +326,9 @@ remove() {
 checkUpdate() {
     getVersion
     if [[ "$?" -eq '0' ]]; then
-        echo "info: No new version. The current version is the latest release $NEW_VERSION."
-    elif [[ "$?" -eq '1' ]]; then
         echo "info: Found the latest release of V2Ray $NEW_VERSION. (Current release: $CURRENT_VERSION)"
+    elif [[ "$?" -eq '1' ]]; then
+        echo "info: No new version. The current version is the latest release $NEW_VERSION."
     else
         echo 'error: V2Ray is not installed.'
         echo "info: The latest release of V2Ray is $NEW_VERSION."
@@ -348,20 +354,20 @@ main() {
         # download via network and decompression
         installSoftware curl
         getVersion
-        if [[ "$?" -eq '0' ]] && [[ "$FORCE" -ne '1' ]]; then
-            echo "info: The latest version $CURRENT_VERSION is installed."
-            exit 0
-        else
+        if [[ "$?" -eq '0' ]] || [[ "$FORCE" -eq '1' ]]; then
             echo "info: Installing V2Ray $NEW_VERSION for $(arch -s)"
             rm -rf "$TMP_DIRECTORY"
             downloadV2Ray
             if [[ "$?" -eq '1' ]]; then
                 rm -rf "$TMP_DIRECTORY"
                 echo "removed: $TMP_DIRECTORY"
-                shift
+                exit 0
             fi
             installSoftware unzip
             decompression "$ZIP_FILE"
+        elif [[ "$?" -eq '1' ]] && [[ "$FORCE" -ne '1' ]]; then
+            echo "info: The latest version $CURRENT_VERSION is installed."
+            exit 0
         fi
     fi
 
