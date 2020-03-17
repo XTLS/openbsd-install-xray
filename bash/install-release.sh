@@ -168,8 +168,8 @@ getVersion() {
                 return
             fi
         fi
-        TMP_FILE="$TMP_DIRECTORY"
-        curl ${PROXY} https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 > $TMP_FILE
+        TMP_FILE="$(mktemp)"
+        curl ${PROXY} -o "$TMP_FILE" https://api.github.com/repos/v2ray/v2ray-core/releases/latest -s
         if [[ "$?" -ne '0' ]]; then
             rm "$TMP_FILE"
             echo 'error: Failed to get release list, please check your network.'
@@ -309,7 +309,7 @@ installV2Ray(){
 installStartupServiceFile() {
     if [[ ! -f '/etc/rc.d/v2ray' ]]; then
         mkdir "$TMP_DIRECTORY/rc.d"
-        curl -o "$TMP_DIRECTORY/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray -s
+        curl ${PROXY} -o "$TMP_DIRECTORY/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray -s
         install -m 755 -g bin "$TMP_DIRECTORY/rc.d/v2ray" /etc/rc.d/v2ray
     fi
 }
