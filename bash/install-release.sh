@@ -168,14 +168,15 @@ getVersion() {
                 return
             fi
         fi
-        RELEASE_LATEST="$(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 > $TMP_DIRECTORY)"
+        TMP_FILE="$TMP_DIRECTORY"
+        curl ${PROXY} https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 > $TMP_FILE
         if [[ "$?" -ne '0' ]]; then
-            rm "$TMP_DIRECTORY"
+            rm "$TMP_FILE"
             echo 'error: Failed to get release list, please check your network.'
             exit 1
         fi
-        RELEASE_LATEST="$(cat $RELEASE_LATEST | grep 'tag_name' | cut -d '"' -f 4)"
-        rm "$TMP_DIRECTORY"
+        RELEASE_LATEST="$(cat $TMP_FILE | grep 'tag_name' | cut -d '"' -f 4)"
+        rm "$TMP_FILE"
         NEW_VERSION="$(versionNumber $RELEASE_LATEST)"
         if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
             NEW_VERSIONSION_NUMBER="${NEW_VERSION#v}"
