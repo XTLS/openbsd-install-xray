@@ -162,17 +162,19 @@ getVersion() {
     if [[ -z "$VERSION" ]]; then
         if [[ -f '/usr/local/bin/v2ray' ]]; then
             VER="$(/usr/local/bin/v2ray -version)"
-            CURRENT_VERSION="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f2))"
+            CURRENT_VERSION="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f 2))"
             if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
                 NEW_VERSION="$CURRENT_VERSION"
                 return
             fi
         fi
-        NEW_VERSION="$(versionNumber $(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s | grep 'tag_name' | cut -d \" -f 4))"
+        RELEASE_LIST="$(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s | grep 'tag_name' | cut -d '"' -f 4)"
         if [[ "$?" -ne '0' ]]; then
-            echo 'error: Failed to get release information, please check your network.'
+            echo 'error: Failed to get release list, please check your network.'
             exit 1
-        elif [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
+        fi
+        NEW_VERSION="$(versionNumber $RELEASE_LIST)"
+        if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
             NEW_VERSIONSION_NUMBER="${NEW_VERSION#v}"
             NEW_MAJOR_VERSION_NUMBER="${NEW_VERSIONSION_NUMBER%%.*}"
             NEW_MINOR_VERSION_NUMBER="$(echo $NEW_VERSIONSION_NUMBER | awk -F '.' '{print $2}')"
