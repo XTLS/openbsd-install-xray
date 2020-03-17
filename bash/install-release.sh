@@ -161,18 +161,19 @@ getVersion() {
     # 2: Install the specified version of V2Ray.
     if [[ -z "$VERSION" ]]; then
         if [[ -f '/usr/local/bin/v2ray' ]]; then
-            VER="$(/usr/local/bin/v2ray -version)"
-            CURRENT_VERSION="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f 2))"
+            VERSION="$(/usr/local/bin/v2ray -version)"
+            CURRENT_VERSION="$(versionNumber $(echo $VERSION | head -n 1 | cut -d ' ' -f 2))"
             if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
                 NEW_VERSION="$CURRENT_VERSION"
                 return
             fi
         fi
-        RELEASE_LIST="$(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s && | grep 'tag_name' | cut -d '"' -f 4)"
+        RELEASE_LIST="$(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s)"
         if [[ "$?" -ne '0' ]]; then
             echo 'error: Failed to get release list, please check your network.'
             exit 1
         fi
+        RELEASE_LIST="$(echo $RELEASE_LIST | grep 'tag_name' | cut -d '"' -f 4)"
         NEW_VERSION="$(versionNumber $RELEASE_LIST)"
         if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
             NEW_VERSIONSION_NUMBER="${NEW_VERSION#v}"
