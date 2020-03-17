@@ -91,8 +91,8 @@ if [[ "$#" -gt '0' ]]; then
     esac
 fi
 
-VSRC_ROOT='/tmp/v2ray'
-ZIP_FILE="/tmp/v2ray/v2ray-openbsd-$BIT.zip"
+TMP_DIRECTORY="$(mktemp -d)"
+ZIP_FILE="$TMP_DIRECTORY/v2ray-openbsd-$BIT.zip"
 
 installSoftware() {
     COMPONENT="$1"
@@ -144,7 +144,7 @@ getVersion() {
     fi
 }
 downloadV2Ray() {
-    mkdir -p /tmp/v2ray
+    mkdir -p "$TMP_DIRECTORY"
     DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VER/v2ray-openbsd-$BIT.zip"
     echo "info: Downloading V2Ray: $DOWNLOAD_LINK"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK" -#
@@ -171,22 +171,22 @@ downloadV2Ray() {
     done
 }
 decompression(){
-    mkdir -p /tmp/v2ray
-    unzip -q "$1" -d "$VSRC_ROOT"
+    mkdir -p "$TMP_DIRECTORY"
+    unzip -q "$1" -d "$TMP_DIRECTORY"
     if [[ "$?" -ne '0' ]]; then
         echo 'error: V2Ray decompression failed.'
-        rm -rf /tmp/v2ray
-        echo 'removed: /tmp/v2ray'
+        rm -rf "$TMP_DIRECTORY"
+        echo "removed: $TMP_DIRECTORY"
         exit 1
     fi
-    echo 'info: Extract the V2Ray package to /tmp/v2ray and prepare it for installation.'
+    echo "info: Extract the V2Ray package to $TMP_DIRECTORY and prepare it for installation."
 }
 installFile() {
     NAME="$1"
     if [[ "$NAME" == 'v2ray' ]] || [[ "$NAME" == 'v2ctl' ]]; then
-        install -m 755 -g bin "$VSRC_ROOT/$NAME" "/usr/local/bin/$NAME"
+        install -m 755 -g bin "$TMP_DIRECTORY/$NAME" "/usr/local/bin/$NAME"
     elif [[ "$NAME" == 'geoip.dat' ]] || [[ "$NAME" == 'geosite.dat' ]]; then
-        install -m 755 -g bin "$VSRC_ROOT/$NAME" "/usr/local/lib/v2ray/$NAME"
+        install -m 755 -g bin "$TMP_DIRECTORY/$NAME" "/usr/local/lib/v2ray/$NAME"
     fi
     return 0
 }
@@ -201,7 +201,7 @@ installV2Ray(){
     # Install V2Ray server config to /etc/v2ray
     if [[ ! -f '/etc/v2ray/config.json' ]]; then
         install -d /etc/v2ray
-        install -m 644 "$VSRC_ROOT/vpoint_vmess_freedom.json" /etc/v2ray/config.json
+        install -m 644 "$TMP_DIRECTORY/vpoint_vmess_freedom.json" /etc/v2ray/config.json
         let PORT="$RANDOM+10000"
         uuid() {
             C='89ab'
@@ -239,9 +239,9 @@ installV2Ray(){
 }
 installStartupServiceFile() {
     if [[ ! -f '/etc/rc.d/v2ray' ]]; then
-        mkdir "$VSRC_ROOT/rc.d"
-        curl -o "$VSRC_ROOT/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray -s
-        install -m 755 -g bin "$VSRC_ROOT/rc.d/v2ray" /etc/rc.d/v2ray
+        mkdir "$TMP_DIRECTORY/rc.d"
+        curl -o "$TMP_DIRECTORY/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray -s
+        install -m 755 -g bin "$TMP_DIRECTORY/rc.d/v2ray" /etc/rc.d/v2ray
     fi
 }
 
@@ -332,7 +332,7 @@ main() {
         read
         NEW_VER='local'
         installSoftware unzip
-        rm -rf /tmp/v2ray
+        rm -rf "$TMP_DIRECTORY"
         decompression "$LOCAL"
     else
         # download via network and decompression
@@ -343,11 +343,11 @@ main() {
             exit 0
         else
             echo "info: Installing V2Ray $NEW_VER for $(arch -s)"
-            rm -rf /tmp/v2ray
+            rm -rf "$TMP_DIRECTORY"
             downloadV2Ray
             if [[ "$?" -eq '1' ]]; then
-                rm -rf /tmp/v2ray
-                echo 'removed: /tmp/v2ray'
+                rm -rf "$TMP_DIRECTORY"
+                echo "removed: $TMP_DIRECTORY"
                 shift
             fi
             installSoftware unzip
@@ -369,8 +369,8 @@ main() {
     echo 'installed: /var/log/v2ray'
     echo 'installed: /etc/rc.d/v2ray'
     echo 'Please execute the command: rcctl enable v2ray'
-    rm -rf /tmp/v2ray
-    echo 'removed: /tmp/v2ray'
+    rm -rf "$TMP_DIRECTORY"
+    echo "removed: $TMP_DIRECTORY"
     if [[ "$V2RAY_RUNNING" == 'true' ]]; then
         startV2Ray
     fi
