@@ -324,16 +324,18 @@ remove() {
 }
 
 checkUpdate() {
-    getVersion
-    if [[ "$?" -eq '0' ]]; then
-        echo "info: Found the latest release of V2Ray $NEW_VERSION. (Current release: $CURRENT_VERSION)"
-    elif [[ "$?" -eq '1' ]]; then
-        echo "info: No new version. The current version is the latest release $NEW_VERSION."
+    if [[ -f '/etc/rc.d/v2ray' ]]; then
+        getVersion
+        if [[ "$?" -eq '0' ]]; then
+            echo "info: Found the latest release of V2Ray $NEW_VERSION. (Current release: $CURRENT_VERSION)"
+        elif [[ "$?" -eq '1' ]]; then
+            echo "info: No new version. The current version is the latest release $NEW_VERSION."
+        fi
+        exit 0
     else
         echo 'error: V2Ray is not installed.'
-        echo "info: The latest release of V2Ray is $NEW_VERSION."
+        exit 1
     fi
-    exit 0
 }
 
 main() {
