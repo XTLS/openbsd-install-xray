@@ -144,26 +144,29 @@ getVersion() {
     fi
 }
 downloadV2Ray() {
-    rm -rf /tmp/v2ray
     mkdir -p /tmp/v2ray
     DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VER/v2ray-openbsd-$BIT.zip"
     echo "info: Downloading V2Ray: $DOWNLOAD_LINK"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
-        exit 1
+        shift 1
     fi
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE.dgst" "$DOWNLOAD_LINK.dgst" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
-        exit 1
+        shift 1
+    fi
+    if [[ "$(cat $ZIP_FILE.dgst)" == 'Not Found' ]]; then
+        echo 'error: This version does not support verification. Please replace with another version.'
+        shift 1
     fi
     for LISTSUM in 'md5' 'sha1' 'sha256' 'sha512'; do
         SUM="$($LISTSUM $ZIP_FILE | sed 's/.* //')"
         CHECKSUM="$(grep ${LISTSUM^^} $ZIP_FILE.dgst | sed 's/.* //')"
         if [[ "$SUM" != "$CHECKSUM" ]]; then
             echo 'error: Check failed! Please check your network or try again.'
-            exit 1
+            shift 1
         fi
     done
 }
@@ -172,6 +175,8 @@ decompression(){
     unzip -q "$1" -d "$VSRC_ROOT"
     if [[ "$?" -ne '0' ]]; then
         echo 'error: V2Ray decompression failed.'
+        rm -rf /tmp/v2ray
+        echo 'removed: /tmp/v2ray'
         exit 1
     fi
     echo 'info: Extract the V2Ray package to /tmp/v2ray and prepare it for installation.'
@@ -323,7 +328,8 @@ main() {
 
     # decompression local file
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
-        echo 'error: Installing V2Ray from a local file. Please make sure the file is valid because we cannot determine it.'
+        echo -n 'warn: Installing V2Ray from a local file. Please make sure the file is valid because we cannot determine it. (Press any key) ...'
+        read
         NEW_VER='local'
         installSoftware unzip
         rm -rf /tmp/v2ray
@@ -337,7 +343,13 @@ main() {
             exit 0
         else
             echo "info: Installing V2Ray $NEW_VER for $(arch -s)"
+            rm -rf /tmp/v2ray
             downloadV2Ray
+            if [[ "$?" -eq '1' ]]; then
+                rm -rf /tmp/v2ray
+                echo 'removed: /tmp/v2ray'
+                shift
+            fi
             installSoftware unzip
             decompression "$ZIP_FILE"
         fi
