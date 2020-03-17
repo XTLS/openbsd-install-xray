@@ -151,7 +151,7 @@ getVersion() {
             CURRENT_VERSION="$(versionNumber $(echo $VER | head -n 1 | cut -d ' ' -f2))"
             if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
                 NEW_VERSION="$CURRENT_VERSION"
-                shift
+                return
             fi
         fi
         NEW_VERSION="$(versionNumber $(curl $PROXY https://api.github.com/repos/v2ray/v2ray-core/releases/latest --connect-timeout 10 -s | grep 'tag_name' | cut -d \" -f 4))"
