@@ -297,9 +297,6 @@ installV2Ray(){
 
         sed -i "s/10086/$PORT/g" /etc/v2ray/config.json
         sed -i "s/23ad6b10-8d1a-40f7-8ad0-e3e35cd38297/$UUID/g" /etc/v2ray/config.json
-
-        echo "PORT: $PORT"
-        echo "UUID: $UUID"
     fi
 
     if [[ ! -d '/var/log/v2ray' ]]; then
@@ -442,7 +439,7 @@ main() {
     echo 'installed: /etc/v2ray/config.json'
     echo 'installed: /var/log/v2ray'
     echo 'installed: /etc/rc.d/v2ray'
-    if [[ ! -f '/etc/v2ray/config.json' ]]; then
+    if [[ -n "$PORT" ]] && [[ -n "$UUID" ]]; then
         echo "PORT: $PORT"
         echo "UUID: $UUID"
     fi
