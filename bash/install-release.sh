@@ -215,13 +215,13 @@ getVersion() {
 downloadV2Ray() {
     mkdir "$TMP_DIRECTORY"
     DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VERSION/v2ray-openbsd-$BIT.zip"
-    echo "Downloading V2Ray: $DOWNLOAD_LINK"
+    echo "Downloading V2Ray archive: $DOWNLOAD_LINK"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
         return 1
     fi
-    echo "Downloading V2Ray verification file: $DOWNLOAD_LINK.dgst"
+    echo "Downloading verification file for V2Ray archive: $DOWNLOAD_LINK.dgst"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE.dgst" "$DOWNLOAD_LINK.dgst" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
@@ -259,6 +259,27 @@ installFile() {
     fi
     return 0
 }
+uuid() {
+    C='89ab'
+    for (( N='0'; N<'16'; ++N )); do
+        B="$(( RANDOM%256 ))"
+        case "$N" in
+            6)
+                printf '4%x' "$(( B%16 ))"
+                ;;
+            8)
+                printf '%c%x' "$C:$RANDOM%$#C:1" "$(( B%16 ))"
+                ;;
+            3 | 5 | 7 | 9)
+                printf '%02x-' "$B"
+                ;;
+            *)
+                printf '%02x' "$B"
+                ;;
+        esac
+    done
+    printf '\n'
+}
 installV2Ray(){
     # Install V2Ray binary to /usr/local/bin and /usr/local/lib/v2ray
     installFile v2ray
@@ -271,35 +292,15 @@ installV2Ray(){
     if [[ ! -f '/etc/v2ray/config.json' ]]; then
         install -d /etc/v2ray
         install -m 644 "$TMP_DIRECTORY/vpoint_vmess_freedom.json" /etc/v2ray/config.json
+
         let PORT="$RANDOM+10000"
-        uuid() {
-            C='89ab'
-            for (( N='0'; N<'16'; ++N )); do
-                B="$(( RANDOM%256 ))"
-                case "$N" in
-                    6)
-                        printf '4%x' "$(( B%16 ))"
-                        ;;
-                    8)
-                        printf '%c%x' "$C:$RANDOM%$#C:1" "$(( B%16 ))"
-                        ;;
-                    3 | 5 | 7 | 9)
-                        printf '%02x-' "$B"
-                        ;;
-                    *)
-                        printf '%02x' "$B"
-                        ;;
-                esac
-            done
-            printf '\n'
-        }
-    UUID="$(uuid)"
+        UUID="$(uuid)"
 
-    sed -i "s/10086/$PORT/g" /etc/v2ray/config.json
-    sed -i "s/23ad6b10-8d1a-40f7-8ad0-e3e35cd38297/$UUID/g" /etc/v2ray/config.json
+        sed -i "s/10086/$PORT/g" /etc/v2ray/config.json
+        sed -i "s/23ad6b10-8d1a-40f7-8ad0-e3e35cd38297/$UUID/g" /etc/v2ray/config.json
 
-    echo "PORT: $PORT"
-    echo "UUID: $UUID"
+        echo "PORT: $PORT"
+        echo "UUID: $UUID"
     fi
 
     if [[ ! -d '/var/log/v2ray' ]]; then
@@ -368,7 +369,7 @@ removeV2Ray() {
             echo 'removed: /usr/local/lib/v2ray'
             echo 'removed: /etc/rc.d/v2ray'
             echo 'Please execute the command: rcctl disable v2ray'
-            echo 'You may need to execute a command to remove dependent software: pkg_del -c curl unzip'
+            echo 'You may need to execute a command to remove dependent software: pkg_delete -ac curl unzip'
             echo 'info: V2Ray has been removed.'
             echo 'info: If necessary, manually delete the configuration and log files.'
             echo 'info: e.g., /etc/v2ray and /var/log/v2ray ...'
@@ -404,7 +405,8 @@ main() {
 
     # Install V2Ray from a local file, but still need to make sure the network is available
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
-        echo -n 'warn: Install V2Ray from a local file, but still need to make sure the network is available. Please make sure the file is valid because we cannot confirm it. (Press any key) ...'
+        echo 'warn: Install V2Ray from a local file, but still need to make sure the network is available.'
+        echo -n 'warn: Please make sure the file is valid because we cannot confirm it. (Press any key) ...'
         read
         installSoftware unzip
         mkdir "$TMP_DIRECTORY"
@@ -443,8 +445,8 @@ main() {
     echo 'installed: /etc/v2ray/config.json'
     echo 'installed: /var/log/v2ray'
     echo 'installed: /etc/rc.d/v2ray'
-    echo 'Please execute the command: rcctl enable v2ray'
-    echo 'You may need to execute a command to remove dependent software: pkg_del -c curl unzip'
+    echo 'Please execute the command: rcctl enable v2ray; rcctl start v2ray'
+    echo 'You may need to execute a command to remove dependent software: pkg_delete -ac curl unzip'
     rm -r "$TMP_DIRECTORY"
     echo "removed: $TMP_DIRECTORY"
     if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
