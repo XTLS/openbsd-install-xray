@@ -164,7 +164,7 @@ getVersion() {
             VERSION="$(/usr/local/bin/v2ray -version)"
             CURRENT_VERSION="$(versionNumber $(echo $VERSION | head -n 1 | awk -F ' ' '{print $2}'))"
             if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
-                NEW_VERSION="$CURRENT_VERSION"
+                RELEASE_VERSION="$CURRENT_VERSION"
                 return
             fi
         fi
@@ -177,23 +177,23 @@ getVersion() {
         fi
         RELEASE_LATEST="$(cat $TMP_FILE | grep 'tag_name' | awk -F '"' '{print $4}')"
         rm "$TMP_FILE"
-        NEW_VERSION="$(versionNumber $RELEASE_LATEST)"
-        if [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]]; then
-            NEW_VERSIONSION_NUMBER="${NEW_VERSION#v}"
-            NEW_MAJOR_VERSION_NUMBER="${NEW_VERSIONSION_NUMBER%%.*}"
-            NEW_MINOR_VERSION_NUMBER="$(echo $NEW_VERSIONSION_NUMBER | awk -F '.' '{print $2}')"
-            NEW_MINIMUM_VERSION_NUMBER="${NEW_VERSIONSION_NUMBER##*.}"
+        RELEASE_VERSION="$(versionNumber $RELEASE_LATEST)"
+        if [[ "$RELEASE_VERSION" != "$CURRENT_VERSION" ]]; then
+            RELEASE_VERSIONSION_NUMBER="${RELEASE_VERSION#v}"
+            RELEASE_MAJOR_VERSION_NUMBER="${RELEASE_VERSIONSION_NUMBER%%.*}"
+            RELEASE_MINOR_VERSION_NUMBER="$(echo $RELEASE_VERSIONSION_NUMBER | awk -F '.' '{print $2}')"
+            RELEASE_MINIMUM_VERSION_NUMBER="${RELEASE_VERSIONSION_NUMBER##*.}"
             CURRENT_VERSIONSION_NUMBER="$(echo ${CURRENT_VERSION#v} | sed 's/-.*//')"
             CURRENT_MAJOR_VERSION_NUMBER="${CURRENT_VERSIONSION_NUMBER%%.*}"
             CURRENT_MINOR_VERSION_NUMBER="$(echo $CURRENT_VERSIONSION_NUMBER | awk -F '.' '{print $2}')"
             CURRENT_MINIMUM_VERSION_NUMBER="${CURRENT_VERSIONSION_NUMBER##*.}"
-            if [[ "$NEW_MAJOR_VERSION_NUMBER" -gt "$CURRENT_MAJOR_VERSION_NUMBER" ]]; then
+            if [[ "$RELEASE_MAJOR_VERSION_NUMBER" -gt "$CURRENT_MAJOR_VERSION_NUMBER" ]]; then
                 return 0
-            elif [[ "$NEW_MAJOR_VERSION_NUMBER" -eq "$CURRENT_MAJOR_VERSION_NUMBER" ]]; then
-                if [[ "$NEW_MINOR_VERSION_NUMBER" -gt "$CURRENT_MINOR_VERSION_NUMBER" ]]; then
+            elif [[ "$RELEASE_MAJOR_VERSION_NUMBER" -eq "$CURRENT_MAJOR_VERSION_NUMBER" ]]; then
+                if [[ "$RELEASE_MINOR_VERSION_NUMBER" -gt "$CURRENT_MINOR_VERSION_NUMBER" ]]; then
                     return 0
-                elif [[ "$NEW_MINOR_VERSION_NUMBER" -eq "$CURRENT_MINOR_VERSION_NUMBER" ]]; then
-                    if [[ "$NEW_MINIMUM_VERSION_NUMBER" -gt "$CURRENT_MINIMUM_VERSION_NUMBER" ]]; then
+                elif [[ "$RELEASE_MINOR_VERSION_NUMBER" -eq "$CURRENT_MINOR_VERSION_NUMBER" ]]; then
+                    if [[ "$RELEASE_MINIMUM_VERSION_NUMBER" -gt "$CURRENT_MINIMUM_VERSION_NUMBER" ]]; then
                         return 0
                     else
                         return 1
@@ -204,17 +204,17 @@ getVersion() {
             else
                 return 1
             fi
-        elif [[ "$NEW_VERSION" == "$CURRENT_VERSION" ]]; then
+        elif [[ "$RELEASE_VERSION" == "$CURRENT_VERSION" ]]; then
             return 1
         fi
     else
-        NEW_VERSION="$(versionNumber $VERSION)"
+        RELEASE_VERSION="$(versionNumber $VERSION)"
         return 2
     fi
 }
 downloadV2Ray() {
     mkdir "$TMP_DIRECTORY"
-    DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$NEW_VERSION/v2ray-openbsd-$BIT.zip"
+    DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$RELEASE_VERSION/v2ray-openbsd-$BIT.zip"
     echo "Downloading V2Ray archive: $DOWNLOAD_LINK"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK" -#
     if [[ "$?" -ne '0' ]]; then
@@ -336,9 +336,9 @@ checkUpdate() {
     if [[ -f '/etc/rc.d/v2ray' ]]; then
         getVersion
         if [[ "$?" -eq '0' ]]; then
-            echo "info: Found the latest release of V2Ray $NEW_VERSION . (Current release: $CURRENT_VERSION)"
+            echo "info: Found the latest release of V2Ray $RELEASE_VERSION . (Current release: $CURRENT_VERSION)"
         elif [[ "$?" -eq '1' ]]; then
-            echo "info: No new version. The current version is the latest release $NEW_VERSION ."
+            echo "info: No new version. The current version of V2Ray is $CURRENT_VERSION ."
         fi
         exit 0
     else
@@ -411,7 +411,7 @@ main() {
         getVersion
         NUMBER="$?"
         if [[ "$NUMBER" -eq '0' ]] || [[ "$FORCE" -eq '1' ]] || [[ "$NUMBER" -eq 2 ]]; then
-            echo "info: Installing V2Ray $NEW_VERSION for $(arch -s)"
+            echo "info: Installing V2Ray $RELEASE_VERSION for $(arch -s)"
             downloadV2Ray
             if [[ "$?" -eq '1' ]]; then
                 rm -r "$TMP_DIRECTORY"
@@ -421,7 +421,7 @@ main() {
             installSoftware unzip
             decompression "$ZIP_FILE"
         elif [[ "$NUMBER" -eq '1' ]]; then
-            echo "info: The latest version $CURRENT_VERSION is installed."
+            echo "info: No new version. The current version of V2Ray is $CURRENT_VERSION ."
             exit 0
         fi
     fi
@@ -447,15 +447,15 @@ main() {
         echo 'Please execute the command: rcctl enable v2ray; rcctl start v2ray'
     fi
     echo 'You may need to execute a command to remove dependent software: pkg_delete -ac curl unzip'
-    rm -r "$TMP_DIRECTORY"
-    echo "removed: $TMP_DIRECTORY"
     if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
         startV2Ray
     fi
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
         getVersion
     fi
-    echo "info: V2Ray $NEW_VERSION is installed."
+    rm -r "$TMP_DIRECTORY"
+    echo "removed: $TMP_DIRECTORY"
+    echo "info: V2Ray $RELEASE_VERSION is installed."
 }
 
 main
