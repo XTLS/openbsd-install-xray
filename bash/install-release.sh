@@ -387,7 +387,7 @@ showHelp() {
     echo '  -f, --force     Force installation of the latest version of V2Ray'
     echo '  -h, --help      Show help'
     echo '  -l, --local     Install V2Ray from a local file'
-    echo '  -p, --proxy     Download through a proxy server, e.g., -p socks5://127.0.0.1:1080 or -p http://127.0.0.1:8118'
+    echo '  -p, --proxy     Download through a proxy server, e.g., -p http://127.0.0.1:8118 or -p socks5://127.0.0.1:1080'
     exit 0
 }
 
