@@ -1,16 +1,19 @@
 #!/bin/bash
 
-# This file is accessible as https://raw.githubusercontent.com/v2fly/openbsd-install-v2ray/master/bash/install-release.sh
-# Original source is located at github.com/v2fly/openbsd-install-v2ray/bash/install-release.sh
+# The files installed by this script conform to the layout of the file system in the OpenBSD operating system:
+# https://man.openbsd.org/hier
 
-# If not specify, default meaning of return value:
-# 0: Success
-# 1: System error
-# 2: Application error
-# 3: Network error
+# The URL of the script project is:
+# https://github.com/v2fly/openbsd-install-v2ray
+
+# The URL of the script is:
+# https://raw.githubusercontent.com/v2fly/openbsd-install-v2ray/master/bash/install-release.sh
+
+# If the script executes incorrectly, go to:
+# https://github.com/v2fly/openbsd-install-v2ray/issues
 
 # Judge computer systems and architecture
-if [[ -f /usr/bin/arch ]]; then
+if [[ -f '/usr/bin/arch' ]]; then
     case "$(arch)" in
         OpenBSD*)
             case "$(uname -m)" in
@@ -102,6 +105,7 @@ if [[ "$#" -gt '0' ]]; then
                     ;;
             esac
             PROXY="-x $2"
+            # Parameters available through a proxy server
             case "$3" in
                 --version)
                     if [[ "$#" -gt '4' ]] || [[ -z "$4" ]]; then
@@ -160,6 +164,7 @@ getVersion() {
     # 1: Installed or no new version of V2Ray.
     # 2: Install the specified version of V2Ray.
     if [[ -z "$VERSION" ]]; then
+        # Determine the version number for V2Ray installed from a local file
         if [[ -f '/usr/local/bin/v2ray' ]]; then
             VERSION="$(/usr/local/bin/v2ray -version)"
             CURRENT_VERSION="$(versionNumber $(echo $VERSION | head -n 1 | awk -F ' ' '{print $2}'))"
@@ -168,6 +173,7 @@ getVersion() {
                 return
             fi
         fi
+        # Get V2Ray release version number
         TMP_FILE="$(mktemp)"
         curl ${PROXY} -o "$TMP_FILE" https://api.github.com/repos/v2ray/v2ray-core/releases/latest -s
         if [[ "$?" -ne '0' ]]; then
@@ -178,6 +184,7 @@ getVersion() {
         RELEASE_LATEST="$(cat $TMP_FILE | grep 'tag_name' | awk -F '"' '{print $4}')"
         rm "$TMP_FILE"
         RELEASE_VERSION="$(versionNumber $RELEASE_LATEST)"
+        # Compare V2Ray version numbers
         if [[ "$RELEASE_VERSION" != "$CURRENT_VERSION" ]]; then
             RELEASE_VERSIONSION_NUMBER="${RELEASE_VERSION#v}"
             RELEASE_MAJOR_VERSION_NUMBER="${RELEASE_VERSIONSION_NUMBER%%.*}"
@@ -231,6 +238,7 @@ downloadV2Ray() {
         echo 'error: This version does not support verification. Please replace with another version.'
         return 1
     fi
+    # Verification of V2Ray archive
     for LISTSUM in 'md5' 'sha1' 'sha256' 'sha512'; do
         SUM="$($LISTSUM $ZIP_FILE | sed 's/.* //')"
         CHECKSUM="$(grep ${LISTSUM^^} $ZIP_FILE.dgst | sed 's/.* //')"
@@ -258,6 +266,7 @@ installFile() {
         install -m 755 -g bin "$TMP_DIRECTORY/$NAME" "/usr/local/lib/v2ray/$NAME"
     fi
 }
+# Generate a fake UUID
 uuid() {
     C='89ab'
     for (( N='0'; N<'16'; ++N )); do
@@ -299,6 +308,7 @@ installV2Ray(){
         sed -i "s/23ad6b10-8d1a-40f7-8ad0-e3e35cd38297/$UUID/g" /etc/v2ray/config.json
     fi
 
+    # Used to store V2Ray log files
     if [[ ! -d '/var/log/v2ray' ]]; then
         install -do www /var/log/v2ray
     fi
@@ -375,6 +385,7 @@ removeV2Ray() {
     fi
 }
 
+# Explanation of parameters in the script
 showHelp() {
     echo "usage: $0 [--remove | --version number | -c | -f | -h | -l | -p]"
     echo '  [-p address] [--version number | -c | -f]'
@@ -394,6 +405,7 @@ main() {
     [[ "$CHECK" -eq '1' ]] && checkUpdate
     [[ "$REMOVE" -eq '1' ]] && removeV2Ray
 
+    # Two very important variables
     TMP_DIRECTORY="$(mktemp -du)"
     ZIP_FILE="$TMP_DIRECTORY/v2ray-openbsd-$BIT.zip"
 
@@ -426,6 +438,7 @@ main() {
         fi
     fi
 
+    # Determine if V2Ray is running
     if [[ -n "$(pgrep v2ray)" ]]; then
         V2RAY_RUNNING='1'
         stopV2Ray
