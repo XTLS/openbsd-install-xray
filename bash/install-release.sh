@@ -257,7 +257,6 @@ installFile() {
     elif [[ "$NAME" == 'geoip.dat' ]] || [[ "$NAME" == 'geosite.dat' ]]; then
         install -m 755 -g bin "$TMP_DIRECTORY/$NAME" "/usr/local/lib/v2ray/$NAME"
     fi
-    return 0
 }
 uuid() {
     C='89ab'
@@ -321,10 +320,9 @@ startV2Ray() {
     fi
     if [[ "$?" -ne 0 ]]; then
         echo 'error: Failed to start V2Ray service.'
-        return 2
+        exit 1
     fi
     echo 'info: Start the V2Ray service.'
-    return 0
 }
 stopV2Ray() {
     if [[ -f '/etc/rc.d/v2ray' ]]; then
@@ -332,10 +330,9 @@ stopV2Ray() {
     fi
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Stopping the V2Ray service failed.'
-        return 2
+        exit 1
     fi
     echo 'info: Stop the V2Ray service.'
-    return 0
 }
 
 checkUpdate() {
@@ -445,7 +442,13 @@ main() {
     echo 'installed: /etc/v2ray/config.json'
     echo 'installed: /var/log/v2ray'
     echo 'installed: /etc/rc.d/v2ray'
-    echo 'Please execute the command: rcctl enable v2ray; rcctl start v2ray'
+    if [[ ! -f '/etc/v2ray/config.json' ]]; then
+        echo "PORT: $PORT"
+        echo "UUID: $UUID"
+    fi
+    if [[ "$V2RAY_RUNNING" -ne '1' ]]; then
+        echo 'Please execute the command: rcctl enable v2ray; rcctl start v2ray'
+    fi
     echo 'You may need to execute a command to remove dependent software: pkg_delete -ac curl unzip'
     rm -r "$TMP_DIRECTORY"
     echo "removed: $TMP_DIRECTORY"
