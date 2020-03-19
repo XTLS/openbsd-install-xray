@@ -12,7 +12,7 @@ installed: /usr/local/bin/v2ctl
 installed: /usr/local/lib/v2ray/geoip.dat
 installed: /usr/local/lib/v2ray/geosite.dat
 installed: /etc/v2ray/config.json
-installed: /var/log/v2ray
+installed: /var/log/v2ray/
 installed: /etc/rc.d/v2ray
 ```
 

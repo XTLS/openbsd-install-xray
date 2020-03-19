@@ -376,7 +376,7 @@ removeV2Ray() {
             echo 'You may need to execute a command to remove dependent software: pkg_delete -ac curl unzip'
             echo 'info: V2Ray has been removed.'
             echo 'info: If necessary, manually delete the configuration and log files.'
-            echo 'info: e.g., /etc/v2ray and /var/log/v2ray ...'
+            echo 'info: e.g., /etc/v2ray/ and /var/log/v2ray/ ...'
             exit 0
         fi
     else
@@ -450,7 +450,7 @@ main() {
     echo 'installed: /usr/local/lib/v2ray/geoip.dat'
     echo 'installed: /usr/local/lib/v2ray/geosite.dat'
     echo 'installed: /etc/v2ray/config.json'
-    echo 'installed: /var/log/v2ray'
+    echo 'installed: /var/log/v2ray/'
     echo 'installed: /etc/rc.d/v2ray'
     if [[ -n "$PORT" ]] && [[ -n "$UUID" ]]; then
         echo "PORT: $PORT"
