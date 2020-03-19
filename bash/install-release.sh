@@ -16,7 +16,7 @@
 if [[ -f '/usr/bin/arch' ]]; then
     case "$(arch)" in
         OpenBSD*)
-            case "$(uname -m)" in
+            case "$(arch -s)" in
                 i686 | i386)
                     BIT='32'
                     ;;
