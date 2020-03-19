@@ -13,24 +13,16 @@
 # https://github.com/v2fly/openbsd-install-v2ray/issues
 
 # Judge computer systems and architecture
-if [[ -f '/usr/bin/arch' ]]; then
-    case "$(arch)" in
-        OpenBSD*)
-            case "$(arch -s)" in
-                i686 | i386)
-                    BIT='32'
-                    ;;
-                x86_64 | amd64)
-                    BIT='64'
-                    ;;
-                *)
-                    echo "error: The architecture is not supported."
-                    exit 1
-                    ;;
-            esac
+if [[ "$(uname)" == 'OpenBSD' ]]; then
+    case "$(arch -s)" in
+        i686 | i386)
+            BIT='32'
+            ;;
+        x86_64 | amd64)
+            BIT='64'
             ;;
         *)
-            echo "error: This operating system is not supported."
+            echo "error: The architecture is not supported."
             exit 1
             ;;
     esac
