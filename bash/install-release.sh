@@ -292,13 +292,13 @@ installV2Ray(){
     # Install V2Ray binary to /usr/local/bin and /usr/local/lib/v2ray
     installFile v2ray
     installFile v2ctl
-    install -d /usr/local/lib/v2ray
+    install -d /usr/local/lib/v2ray/
     installFile geoip.dat
     installFile geosite.dat
 
     # Install V2Ray server config to /etc/v2ray
     if [[ ! -f '/etc/v2ray/config.json' ]]; then
-        install -d /etc/v2ray
+        install -d /etc/v2ray/
         install -m 644 "$TMP_DIRECTORY/vpoint_vmess_freedom.json" /etc/v2ray/config.json
 
         let PORT="$RANDOM+10000"
@@ -309,8 +309,8 @@ installV2Ray(){
     fi
 
     # Used to store V2Ray log files
-    if [[ ! -d '/var/log/v2ray' ]]; then
-        install -do www /var/log/v2ray
+    if [[ ! -d '/var/log/v2ray/' ]]; then
+        install -do www /var/log/v2ray/
     fi
 }
 installStartupServiceFile() {
@@ -363,7 +363,7 @@ removeV2Ray() {
             stopV2Ray
         fi
         NAME="$1"
-        rm -r /usr/local/bin/{v2ray,v2ctl} /usr/local/lib/v2ray /etc/rc.d/v2ray
+        rm -r /usr/local/bin/{v2ray,v2ctl} /usr/local/lib/v2ray/ /etc/rc.d/v2ray
         if [[ "$?" -ne '0' ]]; then
             echo 'error: Failed to remove V2Ray.'
             exit 1
@@ -406,7 +406,7 @@ main() {
     [[ "$REMOVE" -eq '1' ]] && removeV2Ray
 
     # Two very important variables
-    TMP_DIRECTORY="$(mktemp -du)"
+    TMP_DIRECTORY="$(mktemp -du)/"
     ZIP_FILE="$TMP_DIRECTORY/v2ray-openbsd-$BIT.zip"
 
     # Install V2Ray from a local file, but still need to make sure the network is available
