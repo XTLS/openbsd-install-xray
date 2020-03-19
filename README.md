@@ -20,13 +20,13 @@ installed: /etc/rc.d/v2ray
 
 ### 安裝 Bash 和 cURL
 
-```shell
+```
 # pkg_add bash curl
 ```
 
 ## 下載
 
-```shell
+```
 # curl https://raw.githubusercontent.com/v2fly/openbsd-install-v2ray/master/bash/install-release.sh -O
 ```
 
@@ -36,13 +36,13 @@ installed: /etc/rc.d/v2ray
 
 ### 安裝和更新 V2Ray
 
-```shell
+```
 # bash install-release.sh
 ```
 
 ### 移除 V2Ray
 
-```shell
+```
 # bash install-release.sh --remove
 ```
 
