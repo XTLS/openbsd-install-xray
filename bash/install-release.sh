@@ -281,7 +281,7 @@ uuid() {
     printf '\n'
 }
 installV2Ray(){
-    # Install V2Ray binary to /usr/local/bin and /usr/local/lib/v2ray
+    # Install V2Ray binary to /usr/local/bin/ and /usr/local/lib/v2ray/
     installFile v2ray
     installFile v2ctl
     install -d /usr/local/lib/v2ray/
@@ -365,7 +365,7 @@ removeV2Ray() {
             exit 1
         else
             echo 'removed: /etc/rc.d/v2ray'
-            echo 'removed: /usr/local/lib/v2ray'
+            echo 'removed: /usr/local/lib/v2ray/'
             echo 'removed: /usr/local/bin/v2ctl'
             echo 'removed: /usr/local/bin/v2ray'
             echo 'Please execute the command: rcctl disable v2ray'
