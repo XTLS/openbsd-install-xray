@@ -253,9 +253,9 @@ decompression(){
 installFile() {
     NAME="$1"
     if [[ "$NAME" == 'v2ray' ]] || [[ "$NAME" == 'v2ctl' ]]; then
-        install -m 755 -g bin "$TMP_DIRECTORY/$NAME" "/usr/local/bin/$NAME"
+        install -m 755 -g bin "${TMP_DIRECTORY}$NAME" "/usr/local/bin/$NAME"
     elif [[ "$NAME" == 'geoip.dat' ]] || [[ "$NAME" == 'geosite.dat' ]]; then
-        install -m 755 -g bin "$TMP_DIRECTORY/$NAME" "/usr/local/lib/v2ray/$NAME"
+        install -m 755 -g bin "${TMP_DIRECTORY}$NAME" "/usr/local/lib/v2ray/$NAME"
     fi
 }
 # Generate a fake UUID
@@ -291,7 +291,7 @@ installV2Ray(){
     # Install V2Ray server config to /etc/v2ray/
     if [[ ! -f '/etc/v2ray/config.json' ]]; then
         install -d /etc/v2ray/
-        install -m 644 "$TMP_DIRECTORY/vpoint_vmess_freedom.json" /etc/v2ray/config.json
+        install -m 644 "${TMP_DIRECTORY}vpoint_vmess_freedom.json" /etc/v2ray/config.json
 
         let PORT="$RANDOM+10000"
         UUID="$(uuid)"
@@ -307,13 +307,13 @@ installV2Ray(){
 }
 installStartupServiceFile() {
     if [[ ! -f '/etc/rc.d/v2ray' ]]; then
-        mkdir "$TMP_DIRECTORY/rc.d"
-        curl ${PROXY} -o "$TMP_DIRECTORY/rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray -s
+        mkdir "${TMP_DIRECTORY}rc.d"
+        curl ${PROXY} -o "${TMP_DIRECTORY}rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray -s
         if [[ "$?" -ne '0' ]]; then
             echo 'error: Failed to start service file download! Please check your network or try again.'
             exit 1
         fi
-        install -m 755 -g bin "$TMP_DIRECTORY/rc.d/v2ray" /etc/rc.d/v2ray
+        install -m 755 -g bin "${TMP_DIRECTORY}rc.d/v2ray" /etc/rc.d/v2ray
     fi
 }
 
