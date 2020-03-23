@@ -359,15 +359,15 @@ removeV2Ray() {
             stopV2Ray
         fi
         NAME="$1"
-        rm -r /usr/local/bin/{v2ray,v2ctl} /usr/local/lib/v2ray/ /etc/rc.d/v2ray
+        rm -r /etc/rc.d/v2ray /usr/local/lib/v2ray/ /usr/local/bin/{v2ray,v2ctl}
         if [[ "$?" -ne '0' ]]; then
             echo 'error: Failed to remove V2Ray.'
             exit 1
         else
-            echo 'removed: /usr/local/bin/v2ray'
-            echo 'removed: /usr/local/bin/v2ctl'
-            echo 'removed: /usr/local/lib/v2ray'
             echo 'removed: /etc/rc.d/v2ray'
+            echo 'removed: /usr/local/lib/v2ray'
+            echo 'removed: /usr/local/bin/v2ctl'
+            echo 'removed: /usr/local/bin/v2ray'
             echo 'Please execute the command: rcctl disable v2ray'
             echo 'You may need to execute a command to remove dependent software: pkg_delete -ac curl unzip'
             echo 'info: V2Ray has been removed.'
