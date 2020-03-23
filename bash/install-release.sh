@@ -15,10 +15,10 @@
 # Judge computer systems and architecture
 if [[ "$(uname)" == 'OpenBSD' ]]; then
     case "$(arch -s)" in
-        i686 | i386)
+        'i686' | 'i386')
             BIT='32'
             ;;
-        x86_64 | amd64)
+        'x86_64' | 'amd64')
             BIT='64'
             ;;
         *)
@@ -34,42 +34,42 @@ fi
 # Judgment parameters
 if [[ "$#" -gt '0' ]]; then
     case "$1" in
-        --remove)
+        '--remove')
             if [[ "$#" -gt '1' ]]; then
                 echo 'error: Please enter the correct command.'
                 exit 1
             fi
             REMOVE='1'
             ;;
-        --version)
+        '--version')
             if [[ "$#" -gt '2' ]] || [[ -z "$2" ]]; then
                 echo 'error: Please specify the correct version.'
                 exit 1
             fi
             VERSION="$2"
             ;;
-        -c | --check)
+        '-c' | '--check')
             if [[ "$#" -gt '1' ]]; then
                 echo 'error: Please enter the correct command.'
                 exit 1
             fi
             CHECK='1'
             ;;
-        -f | --force)
+        '-f' | '--force')
             if [[ "$#" -gt '1' ]]; then
                 echo 'error: Please enter the correct command.'
                 exit 1
             fi
             FORCE='1'
             ;;
-        -h | --help)
+        '-h' | '--help')
             if [[ "$#" -gt '1' ]]; then
                 echo 'error: Please enter the correct command.'
                 exit 1
             fi
             HELP='1'
             ;;
-        -l | --local)
+        '-l' | '--local')
             if [[ "$#" -gt '2' ]] || [[ -z "$2" ]]; then
                 echo 'error: Please specify the correct local file.'
                 exit 1
@@ -77,7 +77,7 @@ if [[ "$#" -gt '0' ]]; then
             LOCAL_FILE="$2"
             LOCAL_INSTALL='1'
             ;;
-        -p | --proxy)
+        '-p' | '--proxy')
             case "$2" in
                 http://*)
                     ;;
@@ -99,21 +99,21 @@ if [[ "$#" -gt '0' ]]; then
             PROXY="-x $2"
             # Parameters available through a proxy server
             case "$3" in
-                --version)
+                '--version')
                     if [[ "$#" -gt '4' ]] || [[ -z "$4" ]]; then
                         echo 'error: Please specify the correct version.'
                         exit 1
                     fi
                     VERSION="$2"
                     ;;
-                -c | --check)
+                '-c' | '--check')
                     if [[ "$#" -gt '3' ]]; then
                         echo 'error: Please enter the correct command.'
                         exit 1
                     fi
                     CHECK='1'
                     ;;
-                -f | --force)
+                '-f' | '--force')
                     if [[ "$#" -gt '3' ]]; then
                         echo 'error: Please enter the correct command.'
                         exit 1
@@ -288,7 +288,7 @@ installV2Ray(){
     installFile geoip.dat
     installFile geosite.dat
 
-    # Install V2Ray server config to /etc/v2ray
+    # Install V2Ray server config to /etc/v2ray/
     if [[ ! -f '/etc/v2ray/config.json' ]]; then
         install -d /etc/v2ray/
         install -m 644 "$TMP_DIRECTORY/vpoint_vmess_freedom.json" /etc/v2ray/config.json
