@@ -167,7 +167,8 @@ getVersion() {
         fi
         # Get V2Ray release version number
         TMP_FILE="$(mktemp)"
-        curl ${PROXY} -o "$TMP_FILE" https://api.github.com/repos/v2ray/v2ray-core/releases/latest -s
+        # Avoid errors when installing cURL for the first time
+        /usr/local/bin/curl ${PROXY} -o "$TMP_FILE" https://api.github.com/repos/v2ray/v2ray-core/releases/latest -s
         if [[ "$?" -ne '0' ]]; then
             rm "$TMP_FILE"
             echo 'error: Failed to get release list, please check your network.'
@@ -369,7 +370,7 @@ removeV2Ray() {
             echo 'removed: /usr/local/bin/v2ctl'
             echo 'removed: /usr/local/bin/v2ray'
             echo 'Please execute the command: rcctl disable v2ray'
-            echo 'You may need to execute a command to remove dependent software: pkg_delete -ac curl unzip'
+            echo 'You may need to execute a command to remove dependent software: pkg_delete -ac bash curl unzip'
             echo 'info: V2Ray has been removed.'
             echo 'info: If necessary, manually delete the configuration and log files.'
             echo 'info: e.g., /etc/v2ray/ and /var/log/v2ray/ ...'
@@ -455,7 +456,7 @@ main() {
     if [[ "$V2RAY_RUNNING" -ne '1' ]]; then
         echo 'Please execute the command: rcctl enable v2ray; rcctl start v2ray'
     fi
-    echo 'You may need to execute a command to remove dependent software: pkg_delete -ac curl unzip'
+    echo 'You may need to execute a command to remove dependent software: pkg_delete -ac bash curl unzip'
     if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
         startV2Ray
     fi
