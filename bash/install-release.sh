@@ -120,6 +120,10 @@ if [[ "$#" -gt '0' ]]; then
                     fi
                     FORCE='1'
                     ;;
+                *)
+                    echo "$0: unknown option -- -"
+                    exit 1
+                    ;;
             esac
             ;;
         *)
