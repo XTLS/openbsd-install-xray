@@ -143,7 +143,7 @@ installSoftware() {
 }
 versionNumber() {
     case "$1" in
-        v*)
+        'v'*)
             echo "$1"
             ;;
         *)
