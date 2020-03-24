@@ -168,7 +168,8 @@ getVersion() {
         # Get V2Ray release version number
         TMP_FILE="$(mktemp)"
         # Avoid errors when installing cURL for the first time
-        /usr/local/bin/curl ${PROXY} -o "$TMP_FILE" https://api.github.com/repos/v2ray/v2ray-core/releases/latest -s
+        installSoftware curl
+        curl ${PROXY} -o "$TMP_FILE" https://api.github.com/repos/v2ray/v2ray-core/releases/latest -s
         if [[ "$?" -ne '0' ]]; then
             rm "$TMP_FILE"
             echo 'error: Failed to get release list, please check your network.'
@@ -416,7 +417,6 @@ main() {
         decompression "$LOCAL_FILE"
     else
         # Normal way
-        installSoftware curl
         getVersion
         NUMBER="$?"
         if [[ "$NUMBER" -eq '0' ]] || [[ "$FORCE" -eq '1' ]] || [[ "$NUMBER" -eq 2 ]]; then
