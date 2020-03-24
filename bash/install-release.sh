@@ -174,7 +174,7 @@ getVersion() {
             echo 'error: Failed to get release list, please check your network.'
             exit 1
         fi
-        RELEASE_LATEST="$(cat $TMP_FILE | sed 's/,/,\n/g' | grep 'tag_name' | awk -F '"' '{print $4}')"
+        RELEASE_LATEST="$(cat $TMP_FILE | sed 'y/,/\n/' | grep 'tag_name' | awk -F '"' '{print $4}')"
         rm "$TMP_FILE"
         RELEASE_VERSION="$(versionNumber $RELEASE_LATEST)"
         # Compare V2Ray version numbers
@@ -370,7 +370,7 @@ removeV2Ray() {
             echo 'removed: /usr/local/bin/v2ctl'
             echo 'removed: /usr/local/bin/v2ray'
             echo 'Please execute the command: rcctl disable v2ray'
-            echo 'You may need to execute a command to remove dependent software: pkg_delete -ac bash curl unzip'
+            echo 'You may need to execute a command to remove dependent software: pkg_delete -c bash curl unzip; pkg_delete -ac'
             echo 'info: V2Ray has been removed.'
             echo 'info: If necessary, manually delete the configuration and log files.'
             echo 'info: e.g., /etc/v2ray/ and /var/log/v2ray/ ...'
@@ -455,7 +455,7 @@ main() {
     if [[ "$V2RAY_RUNNING" -ne '1' ]]; then
         echo 'Please execute the command: rcctl enable v2ray; rcctl start v2ray'
     fi
-    echo 'You may need to execute a command to remove dependent software: pkg_delete -ac bash curl unzip'
+    echo 'You may need to execute a command to remove dependent software: pkg_delete -c bash curl unzip; pkg_delete -ac'
     if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
         startV2Ray
     fi
