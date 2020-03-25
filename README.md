@@ -52,7 +52,7 @@ installed: /etc/rc.d/v2ray
 usage: install-release.sh [--remove | --version number | -c | -f | -h | -l | -p]
   [-p address] [--version number | -c | -f]
   --remove        Remove V2Ray
-  --version       Install the specified version of V2Ray, e.g., --version v4.18.0
+  --version       Install the specified version of V2Ray, e.g., --version v4.23.0
   -c, --check     Check if V2Ray can be updated
   -f, --force     Force installation of the latest version of V2Ray
   -h, --help      Show help
