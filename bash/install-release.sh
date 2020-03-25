@@ -391,7 +391,7 @@ showHelp() {
     echo "usage: $0 [--remove | --version number | -c | -f | -h | -l | -p]"
     echo '  [-p address] [--version number | -c | -f]'
     echo '  --remove        Remove V2Ray'
-    echo '  --version       Install the specified version of V2Ray, e.g., --version v4.18.0'
+    echo '  --version       Install the specified version of V2Ray, e.g., --version v4.23.0'
     echo '  -c, --check     Check if V2Ray can be updated'
     echo '  -f, --force     Force installation of the latest version of V2Ray'
     echo '  -h, --help      Show help'
