@@ -79,17 +79,17 @@ if [[ "$#" -gt '0' ]]; then
             ;;
         '-p' | '--proxy')
             case "$2" in
-                http://*)
+                'http://'*)
                     ;;
-                https://*)
+                'https://'*)
                     ;;
-                socks4://*)
+                'socks4://'*)
                     ;;
-                socks4a://*)
+                'socks4a://'*)
                     ;;
-                socks5://*)
+                'socks5://'*)
                     ;;
-                socks5h://*)
+                'socks5h://'*)
                     ;;
                 *)
                     echo 'error: Please specify the correct proxy server address.'
@@ -269,13 +269,13 @@ uuid() {
     for (( N='0'; N<'16'; ++N )); do
         B="$(( RANDOM%256 ))"
         case "$N" in
-            6)
+            '6')
                 printf '4%x' "$(( B%16 ))"
                 ;;
-            8)
+            '8')
                 printf '%c%x' "$C:$RANDOM%$#C:1" "$(( B%16 ))"
                 ;;
-            3 | 5 | 7 | 9)
+            '3' | '5' | '7' | '9')
                 printf '%02x-' "$B"
                 ;;
             *)
