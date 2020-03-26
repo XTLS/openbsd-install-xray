@@ -8,6 +8,11 @@ daemon_user=www
 
 . /etc/rc.d/rc.subr
 
+env="V2RAY_LOCATION_ASSET=/usr/local/lib/v2ray/"
+rc_start() {
+    ${rcexec} "${env} ${daemon} ${daemon_flags}"
+}
+
 rc_bg=YES
 rc_reload=NO
 

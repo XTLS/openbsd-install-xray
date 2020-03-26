@@ -7,10 +7,8 @@
 https://man.openbsd.org/hier
 
 ```
-installed: /usr/local/bin/v2ray -> ../lib/v2ray/v2ray
-installed: /usr/local/bin/v2ctl -> ../lib/v2ray/v2ctl
-installed: /usr/local/lib/v2ray/v2ray
-installed: /usr/local/lib/v2ray/v2ctl
+installed: /usr/local/bin/v2ray
+installed: /usr/local/bin/v2ctl
 installed: /usr/local/lib/v2ray/geoip.dat
 installed: /usr/local/lib/v2ray/geosite.dat
 installed: /etc/v2ray/config.json
