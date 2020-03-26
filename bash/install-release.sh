@@ -375,8 +375,6 @@ removeV2Ray() {
         else
             echo 'removed: /usr/local/bin/v2ray -> ../lib/v2ray/v2ray'
             echo 'removed: /usr/local/bin/v2ctl -> ../lib/v2ray/v2ctl'
-            echo 'removed: /usr/local/lib/v2ray/v2ray'
-            echo 'removed: /usr/local/lib/v2ray/v2ctl'
             echo 'removed: /usr/local/lib/v2ray/'
             echo 'removed: /etc/rc.d/v2ray'
             echo 'Please execute the command: rcctl disable v2ray'
