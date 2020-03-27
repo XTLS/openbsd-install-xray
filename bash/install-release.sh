@@ -294,7 +294,7 @@ installV2Ray(){
     installFile geosite.dat
 
     # Install V2Ray server config to /etc/v2ray/
-    if [[ ! -f '/etc/v2ray/config.json' ]]; then
+    if [[ ! -d '/etc/v2ray/' ]]; then
         install -d /etc/v2ray/
         install -m 644 "${TMP_DIRECTORY}vpoint_vmess_freedom.json" /etc/v2ray/config.json
 
