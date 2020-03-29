@@ -299,6 +299,7 @@ installV2Ray(){
 installStartupServiceFile() {
     if [[ ! -f '/etc/rc.d/v2ray' ]]; then
         mkdir "${TMP_DIRECTORY}rc.d/"
+        installSoftware curl
         curl ${PROXY} -o "${TMP_DIRECTORY}rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray -s
         if [[ "$?" -ne '0' ]]; then
             echo 'error: Failed to start service file download! Please check your network or try again.'
