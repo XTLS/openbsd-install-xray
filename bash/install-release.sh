@@ -274,18 +274,6 @@ installV2Ray(){
     # Install V2Ray configuration file to /etc/v2ray/
     if [[ ! -d '/etc/v2ray/' ]]; then
         install -d /etc/v2ray/
-        echo '{' > /etc/v2ray/00_base.json
-        echo '    "log": {},' >> /etc/v2ray/00_base.json
-        echo '    "api": {},' >> /etc/v2ray/00_base.json
-        echo '    "dns": {},' >> /etc/v2ray/00_base.json
-        echo '    "routing": {},' >> /etc/v2ray/00_base.json
-        echo '    "policy": {},' >> /etc/v2ray/00_base.json
-        echo '    "inbounds": [],' >> /etc/v2ray/00_base.json
-        echo '    "outbounds": [],' >> /etc/v2ray/00_base.json
-        echo '    "transport": {},' >> /etc/v2ray/00_base.json
-        echo '    "stats": {},' >> /etc/v2ray/00_base.json
-        echo '    "reverse": {}' >> /etc/v2ray/00_base.json
-        echo '}' >> /etc/v2ray/00_base.json
         for BASE in 00_log 01_api 02_dns 03_routing 04_policy 05_inbounds 06_outbounds 07_transport 08_stats 09_reverse; do
             echo '{}' > "/etc/v2ray/$BASE.json"
         done
