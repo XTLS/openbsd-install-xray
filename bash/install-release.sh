@@ -286,8 +286,8 @@ installV2Ray(){
         echo '    "stats": {},' >> /etc/v2ray/00_base.json
         echo '    "reverse": {}' >> /etc/v2ray/00_base.json
         echo '}' >> /etc/v2ray/00_base.json
-        for BASE in 01_log 02_api 03_dns 04_routing 05_policy 06_inbounds 07_outbounds 08_transport 09_stats 10_reverse; do
-            touch "/etc/v2ray/$BASE.json"
+        for BASE in 00_log 01_api 02_dns 03_routing 04_policy 05_inbounds 06_outbounds 07_transport 08_stats 09_reverse; do
+            echo '{}' > "/etc/v2ray/$BASE.json"
         done
     fi
 
@@ -435,17 +435,16 @@ main() {
     echo 'installed: /usr/local/bin/v2ctl'
     echo 'installed: /usr/local/lib/v2ray/geoip.dat'
     echo 'installed: /usr/local/lib/v2ray/geosite.dat'
-    echo 'installed: /etc/v2ray/00_base.json'
-    echo 'installed: /etc/v2ray/01_log.json'
-    echo 'installed: /etc/v2ray/02_api.json'
-    echo 'installed: /etc/v2ray/03_dns.json'
-    echo 'installed: /etc/v2ray/04_routing.json'
-    echo 'installed: /etc/v2ray/05_policy.json'
-    echo 'installed: /etc/v2ray/06_inbounds.json'
-    echo 'installed: /etc/v2ray/07_outbounds.json'
-    echo 'installed: /etc/v2ray/08_transport.json'
-    echo 'installed: /etc/v2ray/09_stats.json'
-    echo 'installed: /etc/v2ray/10_reverse.json'
+    echo 'installed: /etc/v2ray/00_log.json'
+    echo 'installed: /etc/v2ray/01_api.json'
+    echo 'installed: /etc/v2ray/02_dns.json'
+    echo 'installed: /etc/v2ray/03_routing.json'
+    echo 'installed: /etc/v2ray/04_policy.json'
+    echo 'installed: /etc/v2ray/05_inbounds.json'
+    echo 'installed: /etc/v2ray/06_outbounds.json'
+    echo 'installed: /etc/v2ray/07_transport.json'
+    echo 'installed: /etc/v2ray/08_stats.json'
+    echo 'installed: /etc/v2ray/09_reverse.json'
     echo 'installed: /var/log/v2ray/'
     echo 'installed: /etc/rc.d/v2ray'
     if [[ "$V2RAY_RUNNING" -ne '1' ]]; then
