@@ -263,28 +263,6 @@ installFile() {
         install -m 755 -g bin "${TMP_DIRECTORY}$NAME" "/usr/local/lib/v2ray/$NAME"
     fi
 }
-# Generate a fake UUID
-uuid() {
-    C='89ab'
-    for (( N='0'; N<'16'; ++N )); do
-        B="$(( RANDOM%256 ))"
-        case "$N" in
-            '6')
-                printf '4%x' "$(( B%16 ))"
-                ;;
-            '8')
-                printf '%c%x' "$C:$RANDOM%$#C:1" "$(( B%16 ))"
-                ;;
-            '3' | '5' | '7' | '9')
-                printf '%02x-' "$B"
-                ;;
-            *)
-                printf '%02x' "$B"
-                ;;
-        esac
-    done
-    printf '\n'
-}
 installV2Ray(){
     # Install V2Ray binary to /usr/local/bin/ and /usr/local/lib/v2ray/
     installFile v2ray
@@ -293,16 +271,24 @@ installV2Ray(){
     installFile geoip.dat
     installFile geosite.dat
 
-    # Install V2Ray server config to /etc/v2ray/
+    # Install V2Ray configuration file to /etc/v2ray/
     if [[ ! -d '/etc/v2ray/' ]]; then
         install -d /etc/v2ray/
-        install -m 644 "${TMP_DIRECTORY}vpoint_vmess_freedom.json" /etc/v2ray/config.json
-
-        let PORT="$RANDOM+10000"
-        UUID="$(uuid)"
-
-        sed -i "s/10086/$PORT/g" /etc/v2ray/config.json
-        sed -i "s/23ad6b10-8d1a-40f7-8ad0-e3e35cd38297/$UUID/g" /etc/v2ray/config.json
+        echo '{' > /etc/v2ray/00_base.json
+        echo '    "log": {},' >> /etc/v2ray/00_base.json
+        echo '    "api": {},' >> /etc/v2ray/00_base.json
+        echo '    "dns": {},' >> /etc/v2ray/00_base.json
+        echo '    "routing": {},' >> /etc/v2ray/00_base.json
+        echo '    "policy": {},' >> /etc/v2ray/00_base.json
+        echo '    "inbounds": [],' >> /etc/v2ray/00_base.json
+        echo '    "outbounds": [],' >> /etc/v2ray/00_base.json
+        echo '    "transport": {},' >> /etc/v2ray/00_base.json
+        echo '    "stats": {},' >> /etc/v2ray/00_base.json
+        echo '    "reverse": {}' >> /etc/v2ray/00_base.json
+        echo '}' >> /etc/v2ray/00_base.json
+        for BASE in 01_log 02_api 03_dns 04_routing 05_policy 06_inbounds 07_outbounds 08_transport 09_stats 10_reverse; do
+            touch "/etc/v2ray/$BASE.json"
+        done
     fi
 
     # Used to store V2Ray log files
@@ -449,13 +435,19 @@ main() {
     echo 'installed: /usr/local/bin/v2ctl'
     echo 'installed: /usr/local/lib/v2ray/geoip.dat'
     echo 'installed: /usr/local/lib/v2ray/geosite.dat'
-    echo 'installed: /etc/v2ray/config.json'
+    echo 'installed: /etc/v2ray/00_base.json'
+    echo 'installed: /etc/v2ray/01_log.json'
+    echo 'installed: /etc/v2ray/02_api.json'
+    echo 'installed: /etc/v2ray/03_dns.json'
+    echo 'installed: /etc/v2ray/04_routing.json'
+    echo 'installed: /etc/v2ray/05_policy.json'
+    echo 'installed: /etc/v2ray/06_inbounds.json'
+    echo 'installed: /etc/v2ray/07_outbounds.json'
+    echo 'installed: /etc/v2ray/08_transport.json'
+    echo 'installed: /etc/v2ray/09_stats.json'
+    echo 'installed: /etc/v2ray/10_reverse.json'
     echo 'installed: /var/log/v2ray/'
     echo 'installed: /etc/rc.d/v2ray'
-    if [[ -n "$PORT" ]] && [[ -n "$UUID" ]]; then
-        echo "PORT: $PORT"
-        echo "UUID: $UUID"
-    fi
     if [[ "$V2RAY_RUNNING" -ne '1' ]]; then
         echo 'Please execute the command: rcctl enable v2ray; rcctl start v2ray'
     fi

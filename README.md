@@ -11,7 +11,17 @@ installed: /usr/local/bin/v2ray
 installed: /usr/local/bin/v2ctl
 installed: /usr/local/lib/v2ray/geoip.dat
 installed: /usr/local/lib/v2ray/geosite.dat
-installed: /etc/v2ray/config.json
+installed: /etc/v2ray/00_base.json
+installed: /etc/v2ray/01_log.json
+installed: /etc/v2ray/02_api.json
+installed: /etc/v2ray/03_dns.json
+installed: /etc/v2ray/04_routing.json
+installed: /etc/v2ray/05_policy.json
+installed: /etc/v2ray/06_inbounds.json
+installed: /etc/v2ray/07_outbounds.json
+installed: /etc/v2ray/08_transport.json
+installed: /etc/v2ray/09_stats.json
+installed: /etc/v2ray/10_reverse.json
 installed: /var/log/v2ray/
 installed: /etc/rc.d/v2ray
 ```
