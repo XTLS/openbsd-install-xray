@@ -10,7 +10,7 @@ daemon_user=www
 
 env="V2RAY_LOCATION_ASSET=/usr/local/lib/v2ray/"
 rc_start() {
-    ${rcexec} "${env} ${daemon} ${daemon_flags}"
+	${rcexec} "${env} ${daemon} ${daemon_flags}"
 }
 
 rc_bg=YES
