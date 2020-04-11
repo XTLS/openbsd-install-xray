@@ -15,10 +15,10 @@
 # Judge computer systems and architecture
 if [[ "$(uname)" == 'OpenBSD' ]]; then
     case "$(arch -s)" in
-        'i686' | 'i386')
+        'i386' | 'i686')
             BIT='32'
             ;;
-        'x86_64' | 'amd64')
+        'amd64' | 'x86_64')
             BIT='64'
             ;;
         *)
