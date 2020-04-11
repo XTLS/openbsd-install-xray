@@ -1,6 +1,6 @@
 # openbsd-install-v2ray
 
-> 用於在 OpenBSD 作業系統中安裝 V2Ray 的 Bash 腳本。
+> Bash script for installing V2Ray in the OpenBSD operating system
 
 該腳本安裝的文件符合 OpenBSD 作業系統中文件系統的佈局：
 
