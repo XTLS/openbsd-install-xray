@@ -279,13 +279,13 @@ installV2Ray() {
         for BASE in 00_log 01_api 02_dns 03_routing 04_policy 05_inbounds 06_outbounds 07_transport 08_stats 09_reverse; do
             echo '{}' > "/etc/v2ray/$BASE.json"
         done
-        CONFDIR=yes
+        CONFDIR='1'
     fi
 
     # Used to store V2Ray log files
     if [[ ! -d '/var/log/v2ray/' ]]; then
         install -do www /var/log/v2ray/
-        LOG=yes
+        LOG='1'
     fi
 }
 installStartupServiceFile() {
@@ -298,7 +298,7 @@ installStartupServiceFile() {
             exit 1
         fi
         install -m 755 -g bin "${TMP_DIRECTORY}rc.d/v2ray" /etc/rc.d/v2ray
-        RC_D=yes
+        RC_D='1'
     fi
 }
 
