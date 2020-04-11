@@ -247,7 +247,7 @@ downloadV2Ray() {
         fi
     done
 }
-decompression(){
+decompression() {
     unzip -q "$1" -d "$TMP_DIRECTORY"
     if [[ "$?" -ne '0' ]]; then
         echo 'error: V2Ray decompression failed.'
@@ -265,7 +265,7 @@ installFile() {
         install -m 755 -g bin "${TMP_DIRECTORY}$NAME" "/usr/local/lib/v2ray/$NAME"
     fi
 }
-installV2Ray(){
+installV2Ray() {
     # Install V2Ray binary to /usr/local/bin/ and /usr/local/lib/v2ray/
     installFile v2ray
     installFile v2ctl
@@ -279,11 +279,13 @@ installV2Ray(){
         for BASE in 00_log 01_api 02_dns 03_routing 04_policy 05_inbounds 06_outbounds 07_transport 08_stats 09_reverse; do
             echo '{}' > "/etc/v2ray/$BASE.json"
         done
+        CONFDIR=yes
     fi
 
     # Used to store V2Ray log files
     if [[ ! -d '/var/log/v2ray/' ]]; then
         install -do www /var/log/v2ray/
+        LOG=yes
     fi
 }
 installStartupServiceFile() {
@@ -296,6 +298,7 @@ installStartupServiceFile() {
             exit 1
         fi
         install -m 755 -g bin "${TMP_DIRECTORY}rc.d/v2ray" /etc/rc.d/v2ray
+        RC_D=yes
     fi
 }
 
@@ -426,18 +429,24 @@ main() {
     echo 'installed: /usr/local/bin/v2ctl'
     echo 'installed: /usr/local/lib/v2ray/geoip.dat'
     echo 'installed: /usr/local/lib/v2ray/geosite.dat'
-    echo 'installed: /etc/v2ray/00_log.json'
-    echo 'installed: /etc/v2ray/01_api.json'
-    echo 'installed: /etc/v2ray/02_dns.json'
-    echo 'installed: /etc/v2ray/03_routing.json'
-    echo 'installed: /etc/v2ray/04_policy.json'
-    echo 'installed: /etc/v2ray/05_inbounds.json'
-    echo 'installed: /etc/v2ray/06_outbounds.json'
-    echo 'installed: /etc/v2ray/07_transport.json'
-    echo 'installed: /etc/v2ray/08_stats.json'
-    echo 'installed: /etc/v2ray/09_reverse.json'
-    echo 'installed: /var/log/v2ray/'
-    echo 'installed: /etc/rc.d/v2ray'
+    if [[ -n "$CONFDIR" ]]; then
+        echo 'installed: /etc/v2ray/00_log.json'
+        echo 'installed: /etc/v2ray/01_api.json'
+        echo 'installed: /etc/v2ray/02_dns.json'
+        echo 'installed: /etc/v2ray/03_routing.json'
+        echo 'installed: /etc/v2ray/04_policy.json'
+        echo 'installed: /etc/v2ray/05_inbounds.json'
+        echo 'installed: /etc/v2ray/06_outbounds.json'
+        echo 'installed: /etc/v2ray/07_transport.json'
+        echo 'installed: /etc/v2ray/08_stats.json'
+        echo 'installed: /etc/v2ray/09_reverse.json'
+    fi
+    if [[ -n "$LOG" ]]; then
+        echo 'installed: /var/log/v2ray/'
+    fi
+    if [[ -n "$RC_D" ]]; then
+        echo 'installed: /etc/rc.d/v2ray'
+    fi
     if [[ "$V2RAY_RUNNING" -ne '1' ]]; then
         echo 'Please execute the command: rcctl enable v2ray; rcctl start v2ray'
     fi
