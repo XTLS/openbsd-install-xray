@@ -447,6 +447,8 @@ main() {
     if [[ "$RC_D" -eq '1'  ]]; then
         echo 'installed: /etc/rc.d/v2ray'
     fi
+    rm -r "$TMP_DIRECTORY"
+    echo "removed: $TMP_DIRECTORY"
     echo 'You may need to execute a command to remove dependent software: pkg_delete -c bash curl unzip; pkg_delete -ac'
     if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
         startV2Ray
@@ -456,8 +458,6 @@ main() {
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
         getVersion
     fi
-    rm -r "$TMP_DIRECTORY"
-    echo "removed: $TMP_DIRECTORY"
     echo "info: V2Ray $RELEASE_VERSION is installed."
 }
 
