@@ -7,7 +7,7 @@
 # https://github.com/v2fly/openbsd-install-v2ray
 
 # The URL of the script is:
-# https://raw.githubusercontent.com/v2fly/openbsd-install-v2ray/master/bash/install-release.sh
+# https://raw.githubusercontent.com/v2fly/openbsd-install-v2ray/master/install-release.sh
 
 # If the script executes incorrectly, go to:
 # https://github.com/v2fly/openbsd-install-v2ray/issues

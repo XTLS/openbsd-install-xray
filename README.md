@@ -36,7 +36,7 @@ installed: /etc/rc.d/v2ray
 ## 下載
 
 ```
-# curl -O https://raw.githubusercontent.com/v2fly/openbsd-install-v2ray/master/bash/install-release.sh
+# curl -O https://raw.githubusercontent.com/v2fly/openbsd-install-v2ray/master/install-release.sh
 ```
 
 ## 使用
