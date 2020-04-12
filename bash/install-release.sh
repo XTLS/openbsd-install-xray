@@ -461,16 +461,16 @@ main() {
     fi
     rm -r "$TMP_DIRECTORY"
     echo "removed: $TMP_DIRECTORY"
+    if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
+        get_version
+    fi
+    echo "info: V2Ray $RELEASE_VERSION is installed."
     echo 'You may need to execute a command to remove dependent software: pkg_delete -c bash curl unzip; pkg_delete -ac'
     if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
         start_v2ray
     else
         echo 'Please execute the command: rcctl enable v2ray; rcctl start v2ray'
     fi
-    if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
-        get_version
-    fi
-    echo "info: V2Ray $RELEASE_VERSION is installed."
 }
 
 main
