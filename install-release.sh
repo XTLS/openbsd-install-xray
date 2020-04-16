@@ -12,128 +12,130 @@
 # If the script executes incorrectly, go to:
 # https://github.com/v2fly/openbsd-install-v2ray/issues
 
-# Identify the operating system and architecture
-if [[ "$(uname)" == 'OpenBSD' ]]; then
-    case "$(arch -s)" in
-        'i386' | 'i686')
-            BIT='32'
-            ;;
-        'amd64' | 'x86_64')
-            BIT='64'
-            ;;
-        *)
-            echo "error: The architecture is not supported."
-            exit 1
-            ;;
-    esac
-else
-    echo "error: This operating system is not supported."
-    exit 1
-fi
+identify_the_operating_system_and_architecture() {
+    if [[ "$(uname)" == 'OpenBSD' ]]; then
+        case "$(arch -s)" in
+            'i386' | 'i686')
+                BIT='32'
+                ;;
+            'amd64' | 'x86_64')
+                BIT='64'
+                ;;
+            *)
+                echo "error: The architecture is not supported."
+                exit 1
+                ;;
+        esac
+    else
+        echo "error: This operating system is not supported."
+        exit 1
+    fi
+}
 
-# Judgment parameters
-if [[ "$#" -gt '0' ]]; then
-    case "$1" in
-        '--remove')
-            if [[ "$#" -gt '1' ]]; then
-                echo 'error: Please enter the correct parameters.'
-                exit 1
-            fi
-            REMOVE='1'
-            ;;
-        '--version')
-            if [[ "$#" -gt '2' ]] || [[ -z "$2" ]]; then
-                echo 'error: Please specify the correct version.'
-                exit 1
-            fi
-            VERSION="$2"
-            ;;
-        '-c' | '--check')
-            if [[ "$#" -gt '1' ]]; then
-                echo 'error: Please enter the correct parameters.'
-                exit 1
-            fi
-            CHECK='1'
-            ;;
-        '-f' | '--force')
-            if [[ "$#" -gt '1' ]]; then
-                echo 'error: Please enter the correct parameters.'
-                exit 1
-            fi
-            FORCE='1'
-            ;;
-        '-h' | '--help')
-            if [[ "$#" -gt '1' ]]; then
-                echo 'error: Please enter the correct parameters.'
-                exit 1
-            fi
-            HELP='1'
-            ;;
-        '-l' | '--local')
-            if [[ "$#" -gt '2' ]] || [[ -z "$2" ]]; then
-                echo 'error: Please specify the correct local file.'
-                exit 1
-            fi
-            LOCAL_FILE="$2"
-            LOCAL_INSTALL='1'
-            ;;
-        '-p' | '--proxy')
-            case "$2" in
-                'http://'*)
-                    ;;
-                'https://'*)
-                    ;;
-                'socks4://'*)
-                    ;;
-                'socks4a://'*)
-                    ;;
-                'socks5://'*)
-                    ;;
-                'socks5h://'*)
-                    ;;
-                *)
-                    echo 'error: Please specify the correct proxy server address.'
+judgment_parameters() {
+    if [[ "$#" -gt '0' ]]; then
+        case "$1" in
+            '--remove')
+                if [[ "$#" -gt '1' ]]; then
+                    echo 'error: Please enter the correct parameters.'
                     exit 1
-                    ;;
-            esac
-            PROXY="-x $2"
-            # Parameters available through a proxy server
-            if [[ "$#" -gt '2' ]]; then
-                case "$3" in
-                    '--version')
-                        if [[ "$#" -gt '4' ]] || [[ -z "$4" ]]; then
-                            echo 'error: Please specify the correct version.'
-                            exit 1
-                        fi
-                        VERSION="$2"
+                fi
+                REMOVE='1'
+                ;;
+            '--version')
+                if [[ "$#" -gt '2' ]] || [[ -z "$2" ]]; then
+                    echo 'error: Please specify the correct version.'
+                    exit 1
+                fi
+                VERSION="$2"
+                ;;
+            '-c' | '--check')
+                if [[ "$#" -gt '1' ]]; then
+                    echo 'error: Please enter the correct parameters.'
+                    exit 1
+                fi
+                CHECK='1'
+                ;;
+            '-f' | '--force')
+                if [[ "$#" -gt '1' ]]; then
+                    echo 'error: Please enter the correct parameters.'
+                    exit 1
+                fi
+                FORCE='1'
+                ;;
+            '-h' | '--help')
+                if [[ "$#" -gt '1' ]]; then
+                    echo 'error: Please enter the correct parameters.'
+                    exit 1
+                fi
+                HELP='1'
+                ;;
+            '-l' | '--local')
+                if [[ "$#" -gt '2' ]] || [[ -z "$2" ]]; then
+                    echo 'error: Please specify the correct local file.'
+                    exit 1
+                fi
+                LOCAL_FILE="$2"
+                LOCAL_INSTALL='1'
+                ;;
+            '-p' | '--proxy')
+                case "$2" in
+                    'http://'*)
                         ;;
-                    '-c' | '--check')
-                        if [[ "$#" -gt '3' ]]; then
-                            echo 'error: Please enter the correct parameters.'
-                            exit 1
-                        fi
-                        CHECK='1'
+                    'https://'*)
                         ;;
-                    '-f' | '--force')
-                        if [[ "$#" -gt '3' ]]; then
-                            echo 'error: Please enter the correct parameters.'
-                            exit 1
-                        fi
-                        FORCE='1'
+                    'socks4://'*)
+                        ;;
+                    'socks4a://'*)
+                        ;;
+                    'socks5://'*)
+                        ;;
+                    'socks5h://'*)
                         ;;
                     *)
-                        echo "$0: unknown option -- -"
+                        echo 'error: Please specify the correct proxy server address.'
                         exit 1
                         ;;
                 esac
-            fi
-            ;;
-        *)
-            echo "$0: unknown option -- -"
-            exit 1
-            ;;
-    esac
-fi
+                PROXY="-x $2"
+                # Parameters available through a proxy server
+                if [[ "$#" -gt '2' ]]; then
+                    case "$3" in
+                        '--version')
+                            if [[ "$#" -gt '4' ]] || [[ -z "$4" ]]; then
+                                echo 'error: Please specify the correct version.'
+                                exit 1
+                            fi
+                            VERSION="$2"
+                            ;;
+                        '-c' | '--check')
+                            if [[ "$#" -gt '3' ]]; then
+                                echo 'error: Please enter the correct parameters.'
+                                exit 1
+                            fi
+                            CHECK='1'
+                            ;;
+                        '-f' | '--force')
+                            if [[ "$#" -gt '3' ]]; then
+                                echo 'error: Please enter the correct parameters.'
+                                exit 1
+                            fi
+                            FORCE='1'
+                            ;;
+                        *)
+                            echo "$0: unknown option -- -"
+                            exit 1
+                            ;;
+                    esac
+                fi
+                ;;
+            *)
+                echo "$0: unknown option -- -"
+                exit 1
+                ;;
+        esac
+    fi
+}
 
 install_software() {
     COMPONENT="$1"
@@ -393,6 +395,9 @@ show_help() {
 }
 
 main() {
+    identify_the_operating_system_and_architecture
+    judgment_parameters "$@"
+
     # Parameter information
     [[ "$HELP" -eq '1' ]] && show_help
     [[ "$CHECK" -eq '1' ]] && check_update
@@ -473,4 +478,4 @@ main() {
     fi
 }
 
-main
+main "$@"
