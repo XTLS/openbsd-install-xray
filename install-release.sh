@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -euxo pipefail
 
 # The files installed by this script conform to the layout of the file system in the OpenBSD operating system:
 # https://man.openbsd.org/hier
