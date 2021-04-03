@@ -41,7 +41,7 @@ installed: /etc/rc.d/v2ray
 
 ## 使用
 
-* 該腳本在執行時會提供 `info` 和 `error` 等信息，請仔細閱讀。
+* 該腳本在執行時會提供 `info` 和 `error` 等訊息，請仔細閱讀。
 
 ### 安裝和更新 V2Ray
 
