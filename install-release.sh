@@ -6,13 +6,13 @@ set -euxo pipefail
 # https://man.openbsd.org/hier
 
 # The URL of the script project is:
-# https://github.com/v2fly/openbsd-install-v2ray
+# https://github.com/XTLS/openbsd-install-xray
 
 # The URL of the script is:
-# https://raw.githubusercontent.com/v2fly/openbsd-install-v2ray/master/install-release.sh
+# https://raw.githubusercontent.com/XTLS/openbsd-install-xray/main/install-release.sh
 
 # If the script executes incorrectly, go to:
-# https://github.com/v2fly/openbsd-install-v2ray/issues
+# https://github.com/XTLS/openbsd-install-xray/issues
 
 identify_the_operating_system_and_architecture() {
     if [[ "$(uname)" == 'OpenBSD' ]]; then
@@ -164,23 +164,23 @@ version_number() {
 }
 
 get_version() {
-    # 0: Install or update V2Ray.
-    # 1: Installed or no new version of V2Ray.
-    # 2: Install the specified version of V2Ray.
+    # 0: Install or update Xray.
+    # 1: Installed or no new version of Xray.
+    # 2: Install the specified version of Xray.
     if [[ -z "$VERSION" ]]; then
-        # Determine the version number for V2Ray installed from a local file
-        if [[ -f '/usr/local/bin/v2ray' ]]; then
-            VERSION="$(/usr/local/bin/v2ray -version)"
+        # Determine the version number for Xray installed from a local file
+        if [[ -f '/usr/local/bin/xray' ]]; then
+            VERSION="$(/usr/local/bin/xray version)"
             CURRENT_VERSION="$(version_number $(echo $VERSION | head -n 1 | awk -F ' ' '{print $2}'))"
             if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
                 RELEASE_VERSION="$CURRENT_VERSION"
                 return
             fi
         fi
-        # Get V2Ray release version number
+        # Get Xray release version number
         TMP_FILE="$(mktemp)"
         install_software curl
-        curl ${PROXY} -o "$TMP_FILE" https://api.github.com/repos/v2ray/v2ray-core/releases/latest -s
+        curl ${PROXY} -o "$TMP_FILE" https://api.github.com/repos/XTLS/Xray-core/releases/latest -s
         if [[ "$?" -ne '0' ]]; then
             rm "$TMP_FILE"
             echo 'error: Failed to get release list, please check your network.'
@@ -189,7 +189,7 @@ get_version() {
         RELEASE_LATEST="$(cat $TMP_FILE | sed 'y/,/\n/' | grep 'tag_name' | awk -F '"' '{print $4}')"
         rm "$TMP_FILE"
         RELEASE_VERSION="$(version_number $RELEASE_LATEST)"
-        # Compare V2Ray version numbers
+        # Compare Xray version numbers
         if [[ "$RELEASE_VERSION" != "$CURRENT_VERSION" ]]; then
             RELEASE_VERSIONSION_NUMBER="${RELEASE_VERSION#v}"
             RELEASE_MAJOR_VERSION_NUMBER="${RELEASE_VERSIONSION_NUMBER%%.*}"
@@ -225,16 +225,16 @@ get_version() {
     fi
 }
 
-download_v2ray() {
+download_xray() {
     mkdir "$TMP_DIRECTORY"
-    DOWNLOAD_LINK="https://github.com/v2ray/v2ray-core/releases/download/$RELEASE_VERSION/v2ray-openbsd-$BIT.zip"
-    echo "Downloading V2Ray archive: $DOWNLOAD_LINK"
+    DOWNLOAD_LINK="https://github.com/XTLS/Xray-core/releases/download/$RELEASE_VERSION/Xray-openbsd-$BIT.zip"
+    echo "Downloading Xray archive: $DOWNLOAD_LINK"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
         return 1
     fi
-    echo "Downloading verification file for V2Ray archive: $DOWNLOAD_LINK.dgst"
+    echo "Downloading verification file for Xray archive: $DOWNLOAD_LINK.dgst"
     curl ${PROXY} -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE.dgst" "$DOWNLOAD_LINK.dgst" -#
     if [[ "$?" -ne '0' ]]; then
         echo 'error: Download failed! Please check your network or try again.'
@@ -245,7 +245,7 @@ download_v2ray() {
         return 1
     fi
 
-    # Verification of V2Ray archive
+    # Verification of Xray archive
     for LISTSUM in 'md5' 'sha1' 'sha256' 'sha512'; do
         SUM="$($LISTSUM $ZIP_FILE | sed 's/.* //')"
         CHECKSUM="$(grep ${LISTSUM^^} $ZIP_FILE.dgst | sed 's/.* //')"
@@ -259,125 +259,122 @@ download_v2ray() {
 decompression() {
     unzip -q "$1" -d "$TMP_DIRECTORY"
     if [[ "$?" -ne '0' ]]; then
-        echo 'error: V2Ray decompression failed.'
+        echo 'error: Xray decompression failed.'
         rm -r "$TMP_DIRECTORY"
         echo "removed: $TMP_DIRECTORY"
         exit 1
     fi
-    echo "info: Extract the V2Ray package to $TMP_DIRECTORY and prepare it for installation."
+    echo "info: Extract the Xray package to $TMP_DIRECTORY and prepare it for installation."
 }
 
 install_file() {
     NAME="$1"
-    if [[ "$NAME" == 'v2ray' ]] || [[ "$NAME" == 'v2ctl' ]]; then
+    if [[ "$NAME" == 'xray' ]]; then
         install -m 755 -g bin "${TMP_DIRECTORY}$NAME" "/usr/local/bin/$NAME"
     elif [[ "$NAME" == 'geoip.dat' ]] || [[ "$NAME" == 'geosite.dat' ]]; then
-        install -m 755 -g bin "${TMP_DIRECTORY}$NAME" "/usr/local/lib/v2ray/$NAME"
+        install -m 755 -g bin "${TMP_DIRECTORY}$NAME" "/usr/local/lib/xray/$NAME"
     fi
 }
 
-install_v2ray() {
-    # Install V2Ray binary to /usr/local/bin/ and /usr/local/lib/v2ray/
-    install_file v2ray
-    install_file v2ctl
-    install -d /usr/local/lib/v2ray/
+install_xray() {
+    # Install Xray binary to /usr/local/bin/ and /usr/local/lib/xray/
+    install_file xray
+    install -d /usr/local/lib/xray/
     install_file geoip.dat
     install_file geosite.dat
 
-    # Install V2Ray configuration file to /etc/v2ray/
-    if [[ ! -d '/etc/v2ray/' ]]; then
-        install -d /etc/v2ray/
+    # Install Xray configuration file to /etc/xray/
+    if [[ ! -d '/etc/xray/' ]]; then
+        install -d /etc/xray/
         for BASE in 00_log 01_api 02_dns 03_routing 04_policy 05_inbounds 06_outbounds 07_transport 08_stats 09_reverse; do
-            echo '{}' > "/etc/v2ray/$BASE.json"
+            echo '{}' > "/etc/xray/$BASE.json"
         done
         CONFDIR='1'
     fi
 
-    # Used to store V2Ray log files
-    if [[ ! -d '/var/log/v2ray/' ]]; then
-        install -do www /var/log/v2ray/
+    # Used to store Xray log files
+    if [[ ! -d '/var/log/xray/' ]]; then
+        install -do www /var/log/xray/
         LOG='1'
     fi
 }
 
 install_startup_service_file() {
-    if [[ ! -f '/etc/rc.d/v2ray' ]]; then
+    if [[ ! -f '/etc/rc.d/xray' ]]; then
         mkdir "${TMP_DIRECTORY}rc.d/"
         install_software curl
-        curl ${PROXY} -o "${TMP_DIRECTORY}rc.d/v2ray" https://raw.githubusercontent.workers.dev/v2fly/openbsd-install-v2ray/master/rc.d/v2ray -s
+        curl ${PROXY} -o "${TMP_DIRECTORY}rc.d/xray" https://raw.githubusercontent.com/XTLS/openbsd-install-xray/main/rc.d/xray -s
         if [[ "$?" -ne '0' ]]; then
             echo 'error: Failed to start service file download! Please check your network or try again.'
             exit 1
         fi
-        install -m 755 -g bin "${TMP_DIRECTORY}rc.d/v2ray" /etc/rc.d/v2ray
+        install -m 755 -g bin "${TMP_DIRECTORY}rc.d/xray" /etc/rc.d/xray
         RC_D='1'
     fi
 }
 
-start_v2ray() {
-    if [[ -f '/etc/rc.d/v2ray' ]]; then
-        rcctl start v2ray
+start_xray() {
+    if [[ -f '/etc/rc.d/xray' ]]; then
+        rcctl start xray
     fi
     if [[ "$?" -ne 0 ]]; then
-        echo 'error: Failed to start V2Ray service.'
+        echo 'error: Failed to start Xray service.'
         exit 1
     fi
-    echo 'info: Start the V2Ray service.'
+    echo 'info: Start the Xray service.'
 }
 
-stop_v2ray() {
-    if [[ -f '/etc/rc.d/v2ray' ]]; then
-        rcctl stop v2ray
+stop_xray() {
+    if [[ -f '/etc/rc.d/xray' ]]; then
+        rcctl stop xray
     fi
     if [[ "$?" -ne '0' ]]; then
-        echo 'error: Stopping the V2Ray service failed.'
+        echo 'error: Stopping the Xray service failed.'
         exit 1
     fi
-    echo 'info: Stop the V2Ray service.'
+    echo 'info: Stop the Xray service.'
 }
 
 check_update() {
-    if [[ -f '/etc/rc.d/v2ray' ]]; then
+    if [[ -f '/etc/rc.d/xray' ]]; then
         get_version
         if [[ "$?" -eq '0' ]]; then
-            echo "info: Found the latest release of V2Ray $RELEASE_VERSION . (Current release: $CURRENT_VERSION)"
+            echo "info: Found the latest release of Xray $RELEASE_VERSION . (Current release: $CURRENT_VERSION)"
         elif [[ "$?" -eq '1' ]]; then
-            echo "info: No new version. The current version of V2Ray is $CURRENT_VERSION ."
+            echo "info: No new version. The current version of Xray is $CURRENT_VERSION ."
         fi
         exit 0
     else
-        echo 'error: V2Ray is not installed.'
+        echo 'error: Xray is not installed.'
         exit 1
     fi
 }
 
-remove_v2ray() {
-    if [[ -f '/etc/rc.d/v2ray' ]]; then
-        if [[ -n "$(pgrep v2ray)" ]]; then
-            stop_v2ray
+remove_xray() {
+    if [[ -f '/etc/rc.d/xray' ]]; then
+        if [[ -n "$(pgrep xray)" ]]; then
+            stop_xray
         fi
         NAME="$1"
-        rm /usr/local/bin/v2ray
-        rm /usr/local/bin/v2ctl
-        rm -r /usr/local/lib/v2ray/
-        rm /etc/rc.d/v2ray
+        rm /usr/local/bin/xray
+        rm -r /usr/local/lib/xray/
+        rm /etc/rc.d/xray
         if [[ "$?" -ne '0' ]]; then
-            echo 'error: Failed to remove V2Ray.'
+            echo 'error: Failed to remove Xray.'
             exit 1
         else
-            echo 'removed: /usr/local/bin/v2ray'
-            echo 'removed: /usr/local/bin/v2ctl'
-            echo 'removed: /usr/local/lib/v2ray/'
-            echo 'removed: /etc/rc.d/v2ray'
-            echo 'Please execute the command: rcctl disable v2ray'
+            echo 'removed: /usr/local/bin/xray'
+            echo 'removed: /usr/local/lib/xray/'
+            echo 'removed: /etc/rc.d/xray'
+            echo 'Please execute the command: rcctl disable xray'
             echo 'You may need to execute a command to remove dependent software: pkg_delete -c bash curl unzip; pkg_delete -ac'
-            echo 'info: V2Ray has been removed.'
+            echo 'info: Xray has been removed.'
             echo 'info: If necessary, manually delete the configuration and log files.'
-            echo 'info: e.g., /etc/v2ray/ and /var/log/v2ray/ ...'
+            echo 'info: e.g., /etc/xray/ and /var/log/xray/ ...'
             exit 0
         fi
     else
-        echo 'error: V2Ray is not installed.'
+        echo 'error: Xray is not installed.'
         exit 1
     fi
 }
@@ -386,12 +383,12 @@ remove_v2ray() {
 show_help() {
     echo "usage: $0 [--remove | --version number | -c | -f | -h | -l | -p]"
     echo '  [-p address] [--version number | -c | -f]'
-    echo '  --remove        Remove V2Ray'
-    echo '  --version       Install the specified version of V2Ray, e.g., --version v4.23.0'
-    echo '  -c, --check     Check if V2Ray can be updated'
-    echo '  -f, --force     Force installation of the latest version of V2Ray'
+    echo '  --remove        Remove Xray'
+    echo '  --version       Install the specified version of Xray, e.g., --version v1.4.2'
+    echo '  -c, --check     Check if Xray can be updated'
+    echo '  -f, --force     Force installation of the latest version of Xray'
     echo '  -h, --help      Show help'
-    echo '  -l, --local     Install V2Ray from a local file'
+    echo '  -l, --local     Install Xray from a local file'
     echo '  -p, --proxy     Download through a proxy server, e.g., -p http://127.0.0.1:8118 or -p socks5://127.0.0.1:1080'
     exit 0
 }
@@ -403,15 +400,15 @@ main() {
     # Parameter information
     [[ "$HELP" -eq '1' ]] && show_help
     [[ "$CHECK" -eq '1' ]] && check_update
-    [[ "$REMOVE" -eq '1' ]] && remove_v2ray
+    [[ "$REMOVE" -eq '1' ]] && remove_xray
 
     # Two very important variables
     TMP_DIRECTORY="$(mktemp -du)/"
-    ZIP_FILE="${TMP_DIRECTORY}v2ray-openbsd-$BIT.zip"
+    ZIP_FILE="${TMP_DIRECTORY}Xray-openbsd-$BIT.zip"
 
-    # Install V2Ray from a local file, but still need to make sure the network is available
+    # Install Xray from a local file, but still need to make sure the network is available
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
-        echo 'warn: Install V2Ray from a local file, but still need to make sure the network is available.'
+        echo 'warn: Install Xray from a local file, but still need to make sure the network is available.'
         echo -n 'warn: Please make sure the file is valid because we cannot confirm it. (Press any key) ...'
         read
         install_software unzip
@@ -422,8 +419,8 @@ main() {
         get_version
         NUMBER="$?"
         if [[ "$NUMBER" -eq '0' ]] || [[ "$FORCE" -eq '1' ]] || [[ "$NUMBER" -eq 2 ]]; then
-            echo "info: Installing V2Ray $RELEASE_VERSION for $(arch -s)"
-            download_v2ray
+            echo "info: Installing Xray $RELEASE_VERSION for $(arch -s)"
+            download_xray
             if [[ "$?" -eq '1' ]]; then
                 rm -r "$TMP_DIRECTORY"
                 echo "removed: $TMP_DIRECTORY"
@@ -432,51 +429,50 @@ main() {
             install_software unzip
             decompression "$ZIP_FILE"
         elif [[ "$NUMBER" -eq '1' ]]; then
-            echo "info: No new version. The current version of V2Ray is $CURRENT_VERSION ."
+            echo "info: No new version. The current version of Xray is $CURRENT_VERSION ."
             exit 0
         fi
     fi
 
-    # Determine if V2Ray is running
-    if [[ -n "$(pgrep v2ray)" ]]; then
-        stop_v2ray
-        V2RAY_RUNNING='1'
+    # Determine if Xray is running
+    if [[ -n "$(pgrep xray)" ]]; then
+        stop_xray
+        XRAY_RUNNING='1'
     fi
-    install_v2ray
+    install_xray
     install_startup_service_file
-    echo 'installed: /usr/local/bin/v2ray'
-    echo 'installed: /usr/local/bin/v2ctl'
-    echo 'installed: /usr/local/lib/v2ray/geoip.dat'
-    echo 'installed: /usr/local/lib/v2ray/geosite.dat'
+    echo 'installed: /usr/local/bin/xray'
+    echo 'installed: /usr/local/lib/xray/geoip.dat'
+    echo 'installed: /usr/local/lib/xray/geosite.dat'
     if [[ "$CONFDIR" -eq '1' ]]; then
-        echo 'installed: /etc/v2ray/00_log.json'
-        echo 'installed: /etc/v2ray/01_api.json'
-        echo 'installed: /etc/v2ray/02_dns.json'
-        echo 'installed: /etc/v2ray/03_routing.json'
-        echo 'installed: /etc/v2ray/04_policy.json'
-        echo 'installed: /etc/v2ray/05_inbounds.json'
-        echo 'installed: /etc/v2ray/06_outbounds.json'
-        echo 'installed: /etc/v2ray/07_transport.json'
-        echo 'installed: /etc/v2ray/08_stats.json'
-        echo 'installed: /etc/v2ray/09_reverse.json'
+        echo 'installed: /etc/xray/00_log.json'
+        echo 'installed: /etc/xray/01_api.json'
+        echo 'installed: /etc/xray/02_dns.json'
+        echo 'installed: /etc/xray/03_routing.json'
+        echo 'installed: /etc/xray/04_policy.json'
+        echo 'installed: /etc/xray/05_inbounds.json'
+        echo 'installed: /etc/xray/06_outbounds.json'
+        echo 'installed: /etc/xray/07_transport.json'
+        echo 'installed: /etc/xray/08_stats.json'
+        echo 'installed: /etc/xray/09_reverse.json'
     fi
     if [[ "$LOG" -eq '1' ]]; then
-        echo 'installed: /var/log/v2ray/'
+        echo 'installed: /var/log/xray/'
     fi
     if [[ "$RC_D" -eq '1'  ]]; then
-        echo 'installed: /etc/rc.d/v2ray'
+        echo 'installed: /etc/rc.d/xray'
     fi
     rm -r "$TMP_DIRECTORY"
     echo "removed: $TMP_DIRECTORY"
     if [[ "$LOCAL_INSTALL" -eq '1' ]]; then
         get_version
     fi
-    echo "info: V2Ray $RELEASE_VERSION is installed."
+    echo "info: Xray $RELEASE_VERSION is installed."
     echo 'You may need to execute a command to remove dependent software: pkg_delete -c bash curl unzip; pkg_delete -ac'
-    if [[ "$V2RAY_RUNNING" -eq '1' ]]; then
-        start_v2ray
+    if [[ "$XRAY_RUNNING" -eq '1' ]]; then
+        start_xray
     else
-        echo 'Please execute the command: rcctl enable v2ray; rcctl start v2ray'
+        echo 'Please execute the command: rcctl enable xray; rcctl start xray'
     fi
 }
 

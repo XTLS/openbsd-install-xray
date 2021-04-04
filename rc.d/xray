@@ -1,0 +1,19 @@
+#!/bin/ksh
+#
+# $OpenBSD: Xray,v 1.4 2018/01/11 19:52:12 rpe Exp $
+
+daemon="/usr/local/bin/xray"
+daemon_flags="run -confdir /etc/xray/"
+daemon_user=www
+
+. /etc/rc.d/rc.subr
+
+env="XRAY_LOCATION_ASSET=/usr/local/lib/xray/"
+rc_start() {
+	${rcexec} "${env} ${daemon} ${daemon_flags}"
+}
+
+rc_bg=YES
+rc_reload=NO
+
+rc_cmd $1
